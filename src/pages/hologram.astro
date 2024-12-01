@@ -1,0 +1,25 @@
+---
+import "../styles/server.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face Filter Lab - TV</title>
+  </head>
+  <body>
+    <header>
+      <h1>Face Filter Lab</h1>
+      <p>Start the camera and begin real-time drawing.</p>
+    </header>
+    <main>
+      <video id="video" autoplay playsinline muted></video>
+      <div class="controls">
+        <button id="start-camera">Start Camera</button>
+      </div>
+    </main>
+    <script src="/webrtc.js" type="module"></script>
+  </body>
+</html>
