@@ -3,12 +3,20 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "start": "node server.js",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^4.16.16"
+    "@mediapipe/tasks-vision": "^0.10.18",
+    "astro": "^4.16.16",
+    "express": "^4.21.1",
+    "simple-peer": "^9.11.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "vite-plugin-static-copy": "^2.2.0"
   }
 }

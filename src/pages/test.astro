@@ -1,0 +1,28 @@
+---
+
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Segmentation Test</title>
+  </head>
+  <body>
+    <h1>Webcam Image Segmentation</h1>
+    <section id="demos" class="invisible">
+      <h2>Webcam Segmentation</h2>
+      <p>
+        Hold objects close to your webcam to see segmentation in real-time.<br
+        />
+        Click the button below to enable or disable the webcam.
+      </p>
+      <div>
+        <button id="webcamButton">ENABLE SEGMENTATION</button>
+      </div>
+      <video id="webcam" autoplay playsinline muted></video>
+      <canvas id="canvas"></canvas>
+    </section>
+    <script src="/src/scripts/segmentation.js" type="module"></script>
+  </body>
+</html>

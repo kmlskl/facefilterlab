@@ -1,25 +1,21 @@
 ---
-import "../styles/server.css";
+
 ---
 
-<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Face Filter Lab - TV</title>
+    <title>Hologram Display</title>
   </head>
   <body>
-    <header>
-      <h1>Face Filter Lab</h1>
-      <p>Start the camera and begin real-time drawing.</p>
-    </header>
-    <main>
-      <video id="video" autoplay playsinline muted></video>
-      <div class="controls">
-        <button id="start-camera">Start Camera</button>
-      </div>
-    </main>
+    <h1>Hologram Display</h1>
+    <p id="session-info">Waiting to join session...</p>
+    <video id="local-video" autoplay playsinline muted></video>
+    <video id="remote-video" autoplay playsinline></video>
+    <button id="start_session">Start Session</button>
+    <script src="/socket.io/socket.io.js" is:inline></script>
+    <script src="/simplepeer.min.js" is:inline></script>
     <script src="/webrtc.js" type="module"></script>
   </body>
 </html>
