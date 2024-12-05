@@ -1,5 +1,6 @@
 ---
-
+import "@/styles/reset.css";
+import "@/styles/style.css";
 ---
 
 <html lang="en">
@@ -20,7 +21,7 @@
       <div>
         <button id="webcamButton">ENABLE SEGMENTATION</button>
       </div>
-      <video id="webcam" autoplay playsinline muted></video>
+      <video class="hidden" id="webcam" autoplay playsinline muted></video>
       <canvas id="canvas"></canvas>
     </section>
     <script src="/src/scripts/segmentation.js" type="module"></script>

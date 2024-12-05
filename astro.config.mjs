@@ -8,6 +8,7 @@ export default defineConfig({
       alias: {
         // Alias the Mediapipe WASM folder to a virtual path
         "@mediapipe-wasm": "/wasm",
+        "@": "/src",
       },
     },
     server: {
