@@ -1,5 +1,6 @@
 import {
   ImageSegmenter,
+  FaceLandmarker,
   FilesetResolver,
   DrawingUtils,
 } from "@mediapipe/tasks-vision";
@@ -11,8 +12,14 @@ const demosSection = document.getElementById("demos");
 let enableWebcamButton;
 let webcamRunning = false;
 let imageSegmenter;
-let runningMode = "IMAGE";
+let faceLandmarker;
+let runningMode = "VIDEO";
 let labels;
+
+let isDrawing = false;
+let drawnPoints = [];
+let faceDrawings = [];
+let currentFaceLandmarks;
 
 const legendColors = [
   [255, 197, 0, 255], // Vivid Yellow
@@ -53,19 +60,117 @@ const createImageSegmenter = async () => {
   demosSection.classList.remove("invisible");
 };
 
-// const createFaceLandmarker = async () => {
-//   const visionFileset = await FilesetResolver.forVisionTasks("/wasm");
-//   faceLandmarker = await FaceLandmarker.createFromOptions(visionFileset, {
-//     baseOptions: {
-//       modelAssetPath: "/models/face_landmarker.task",
-//       delegate: "GPU",
-//     },
-//     outputFaceBlendshapes: true,
-//     runningMode,
-//     numFaces: 2,
-//   });
-//   demosSection.classList.remove("invisible");
-// };
+const createFaceLandmarker = async () => {
+  const visionFileset = await FilesetResolver.forVisionTasks("/wasm");
+  faceLandmarker = await FaceLandmarker.createFromOptions(visionFileset, {
+    baseOptions: {
+      modelAssetPath: "/models/face_landmarker.task",
+      delegate: "GPU",
+    },
+    outputFaceBlendshapes: true,
+    runningMode,
+    numFaces: 1,
+  });
+  demosSection.classList.remove("invisible");
+};
+
+/// face landmarker drawing
+canvasElement.addEventListener("mousedown", (e) => {
+  isDrawing = true;
+  drawnPoints = [];
+});
+
+canvasElement.addEventListener("mousemove", (e) => {
+  if (!isDrawing) return;
+  const rect = canvasElement.getBoundingClientRect();
+  drawnPoints.push({
+    x: (e.clientX - rect.left) / rect.width, // Normalize x
+    y: (e.clientY - rect.top) / rect.height, // Normalize y
+  });
+});
+
+canvasElement.addEventListener("mouseup", () => {
+  isDrawing = false;
+  if (drawnPoints.length && currentFaceLandmarks) {
+    // Convert drawnPoints to pinned points
+    const pinnedDrawing = mapToFace(drawnPoints, currentFaceLandmarks);
+    faceDrawings.push(pinnedDrawing);
+  }
+  drawnPoints = [];
+});
+
+//// face landmarker drawing end
+
+// Helper to Draw Freehand on Canvas
+function drawOnCanvas(points, ctx, color = "red") {
+  if (points.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  for (let i = 0; i < points.length - 1; i++) {
+    ctx.moveTo(
+      points[i].x * canvasElement.width,
+      points[i].y * canvasElement.height
+    );
+    ctx.lineTo(
+      points[i + 1].x * canvasElement.width,
+      points[i + 1].y * canvasElement.height
+    );
+  }
+  ctx.stroke();
+}
+// Map Drawing Points to Face
+function mapToFace(drawnPoints, landmarks) {
+  const pinnedDrawings = [];
+  drawnPoints.forEach((point) => {
+    let minDist = Infinity;
+    let nearestLandmarkIndex = null;
+
+    landmarks.forEach((landmark, index) => {
+      const dx = point.x - landmark.x;
+      const dy = point.y - landmark.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) {
+        minDist = dist;
+        nearestLandmarkIndex = index;
+      }
+    });
+
+    if (nearestLandmarkIndex !== null) {
+      const lm = landmarks[nearestLandmarkIndex];
+      pinnedDrawings.push({
+        landmarkIndex: nearestLandmarkIndex,
+        offsetX: point.x - lm.x,
+        offsetY: point.y - lm.y,
+      });
+    }
+  });
+
+  return pinnedDrawings;
+}
+
+// Render Pinned Drawings
+function renderPinnedDrawings(allPinnedDrawings, landmarks, ctx) {
+  ctx.strokeStyle = "blue";
+  ctx.lineWidth = 2;
+
+  allPinnedDrawings.forEach((pinnedDrawing) => {
+    ctx.beginPath();
+
+    pinnedDrawing.forEach((p, i) => {
+      const lm = landmarks[p.landmarkIndex];
+      const x = (lm.x + p.offsetX) * canvasElement.width;
+      const y = (lm.y + p.offsetY) * canvasElement.height;
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+
+    ctx.stroke();
+  });
+}
 
 // Helper: Check Webcam Access
 function hasGetUserMedia() {
@@ -81,38 +186,43 @@ async function predictWebcam() {
   }
   lastWebcamTime = video.currentTime;
 
-  // Save the current canvas state
+  // Draw mirrored video frame
   canvasCtx.save();
-
-  // Mirror the canvas horizontally
   canvasCtx.translate(canvasElement.width, 0);
   canvasCtx.scale(-1, 1);
-
-  // Draw the video feed onto the canvas
   canvasCtx.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-
-  // Restore the canvas state for further drawing operations
   canvasCtx.restore();
 
-  if (!imageSegmenter) return;
+  const startTimeMs = performance.now();
 
-  if (runningMode === "IMAGE") {
-    runningMode = "VIDEO";
-    await imageSegmenter.setOptions({ runningMode });
+  // Run segmentation
+  if (imageSegmenter) {
+    // After segmentation finishes, callbackForVideo will run.
+    imageSegmenter.segmentForVideo(video, startTimeMs, callbackForVideo);
   }
 
-  const startTimeMs = performance.now();
-  imageSegmenter.segmentForVideo(video, startTimeMs, callbackForVideo);
+  // Detect the face and landmarks, store them for later use
+  if (faceLandmarker) {
+    const results = await faceLandmarker.detectForVideo(video, startTimeMs);
+    if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
+      currentFaceLandmarks = results.faceLandmarks[0];
+    }
+  }
+
+  // We do NOT render pinned drawings here directly anymore
+  // Instead, we'll rely on callbackForVideo to do that after the mask is applied.
+
+  if (webcamRunning) window.requestAnimationFrame(predictWebcam);
 }
 
 // Draw Segmentation Results
 function callbackForVideo(result) {
   const mask = result.categoryMask.getAsUint8Array();
 
-  // Draw the video feed onto the canvas first
+  // Draw the video feed again (normal orientation)
   canvasCtx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-  // Get the image data from the canvas (the video frame)
+  // Apply the mask
   const imageData = canvasCtx.getImageData(
     0,
     0,
@@ -121,27 +231,33 @@ function callbackForVideo(result) {
   );
   const { data } = imageData;
 
-  // Use the mask to cut out the desired areas
   for (let i = 0; i < mask.length; i++) {
     if (mask[i] !== 1 && mask[i] !== 3 && mask[i] !== 5) {
-      data[i * 4] = 0; // Red
-      data[i * 4 + 1] = 0; // Green
-      data[i * 4 + 2] = 0; // Blue
-      data[i * 4 + 3] = 0; // Alpha (fully transparent)
+      data[i * 4] = 0;
+      data[i * 4 + 1] = 0;
+      data[i * 4 + 2] = 0;
+      data[i * 4 + 3] = 0;
     }
   }
 
-  // Put the modified image data back onto the canvas
   canvasCtx.putImageData(imageData, 0, 0);
 
+  // Apply blur and mask composition
   canvasCtx.save();
-  canvasCtx.filter = "blur(5px)"; // Adjust blur radius as needed
+  canvasCtx.filter = "blur(5px)";
   canvasCtx.globalCompositeOperation = "destination-in";
   canvasCtx.drawImage(canvasElement, 0, 0);
   canvasCtx.restore();
 
-  // Continue the webcam prediction loop if it's running
-  if (webcamRunning) window.requestAnimationFrame(predictWebcam);
+  // Now that the mask is done, and we know the landmarks are set,
+  // we can safely render the pinned drawings on top.
+  if (currentFaceLandmarks) {
+    renderPinnedDrawings(faceDrawings, currentFaceLandmarks, canvasCtx);
+  }
+
+  if (isDrawing && drawnPoints.length > 0) {
+    drawOnCanvas(drawnPoints, canvasCtx, "blue");
+  }
 }
 
 async function enableCam() {
@@ -175,3 +291,4 @@ if (hasGetUserMedia()) {
 }
 
 createImageSegmenter();
+createFaceLandmarker();
