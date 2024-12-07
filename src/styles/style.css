@@ -1,8 +1,9 @@
 .hidden {
-    visibility: hidden;
-    position: absolute;
+  visibility: hidden;
+  position: absolute;
 }
 
-#webcam, #canvas {
+#webcam,
+#canvas {
   /* transform: scaleX(-1); */
 }

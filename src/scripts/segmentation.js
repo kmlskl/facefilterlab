@@ -110,11 +110,11 @@ function drawOnCanvas(points, ctx, color = "red") {
   for (let i = 0; i < points.length - 1; i++) {
     ctx.moveTo(
       points[i].x * canvasElement.width,
-      points[i].y * canvasElement.height
+      points[i].y * canvasElement.height,
     );
     ctx.lineTo(
       points[i + 1].x * canvasElement.width,
-      points[i + 1].y * canvasElement.height
+      points[i + 1].y * canvasElement.height,
     );
   }
   ctx.stroke();
@@ -227,7 +227,7 @@ function callbackForVideo(result) {
     0,
     0,
     video.videoWidth,
-    video.videoHeight
+    video.videoHeight,
   );
   const { data } = imageData;
 

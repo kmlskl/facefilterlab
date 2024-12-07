@@ -17,6 +17,8 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1",
     "vite-plugin-static-copy": "^2.2.0"
   }
 }
