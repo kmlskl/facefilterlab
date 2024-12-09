@@ -10,20 +10,25 @@ import "@/styles/style.css";
     <title>Image Segmentation Test</title>
   </head>
   <body>
-    <h1>Webcam Image Segmentation</h1>
+    <h1 class="hidden">Webcam Image Segmentation</h1>
     <section id="demos" class="invisible">
-      <h2>Webcam Segmentation</h2>
+      <h2 class="hidden">Webcam Segmentation</h2>
       <p>
         Hold objects close to your webcam to see segmentation in real-time.<br
         />
         Click the button below to enable or disable the webcam.
       </p>
-      <div>
+      <div class="absolute">
         <button id="webcamButton">ENABLE SEGMENTATION</button>
         <button id="saveButton">SAVE IMAGE</button>
       </div>
       <video class="hidden" id="webcam" autoplay playsinline muted></video>
-      <canvas id="canvas"></canvas>
+      <div class="container">
+        <canvas class="canvas1"></canvas>
+        <canvas class="canvas2"></canvas>
+        <canvas class="canvas3"></canvas>
+        <canvas class="canvas4"></canvas>
+      </div>
     </section>
     <script src="/src/scripts/segmentation.js" type="module"></script>
   </body>

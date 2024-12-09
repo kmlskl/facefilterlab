@@ -3,7 +3,63 @@
   position: absolute;
 }
 
-#webcam,
-#canvas {
-  /* transform: scaleX(-1); */
+.absolute {
+  position: absolute;
+  bottom: 0;
+  right: 50%;
+  transform: translateX(50%);
+  z-index: 22;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  height: 100vh;
+  background: black;
+}
+
+.container {
+  position: relative;
+  width: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* background-image: url("/bg.png"); */
+  background-size: cover;
+}
+
+.canvas1,
+.canvas2,
+.canvas3,
+.canvas4 {
+  position: absolute;
+  width: calc(100vh / 3);
+  height: calc(100vh / 3);
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+}
+
+/* Bottom canvas: no rotation, shifted down so its top edge meets center */
+.canvas1 {
+  transform: translateX(-50%) translateY(calc(100vh / 6));
+}
+
+/* Left canvas: rotate -90°, shift left so its right edge meets center */
+.canvas2 {
+  transform: translateY(-50%) translateX(calc(3 * (-100vh / 6))) rotate(90deg);
+}
+
+/* Top canvas: rotate 180°, shift up so its bottom edge meets center */
+.canvas3 {
+  transform: translateX(-50%) translateY(calc(3 * (-100vh / 6))) rotate(180deg);
+}
+
+/* Right canvas: rotate 90°, shift right so its left edge meets center */
+.canvas4 {
+  transform: translateY(-50%) translateX(calc(100vh / 6)) rotate(-90deg);
 }
