@@ -11,105 +11,121 @@ const servers = {
   ],
 };
 
-// Initialize the app
-async function initApp(videoElementId) {
+const initApp = async (canvasId) => {
   try {
-    // Step 1: Initialize socket connection
     initSocket();
 
-    // Step 2: Initialize local camera
-    await initCamera(videoElementId);
+    await initCanvasStream(canvasId);
   } catch (error) {
     console.error("Error initializing the app:", error);
   }
-}
+};
 
 // Initialize Socket.io connection
-function initSocket() {
-  socket = io.connect("/");
-
+const initSocket = () => {
+  socket = io.connect("https://172.30.12.166:2000");
   socket.on("connect", () => {
-    console.log(`Connected to signaling server. My ID: ${socket.id}`);
-
-    // Inform server we're ready, and check if we're the first or joining
-    socket.emit("ready", socket.id);
-
-    // Handle server response to determine role
-    socket.on("role", (role, existingPeerId) => {
-      console.log(`Role assigned: ${role}`);
-      if (role === "initiator") {
-        createPeer(true, null); // Create peer as initiator
-      } else if (role === "joiner" && existingPeerId) {
-        createPeer(false, existingPeerId); // Join existing connection
-      }
-    });
+    console.log(`Connected. My ID: ${socket.id}`);
   });
 
-  socket.on("signal", (peerId, signal) => {
+  socket.on("client-disconnect", (client) => {
+    if (peer && peer.data.id === client.id) {
+      peer.destroy();
+    }
+  });
+
+  socket.on("signal", async (myId, signal, peerId) => {
     if (peer) {
       peer.signal(signal);
     } else if (signal.type === "offer") {
-      console.log("Received offer, creating peer as a receiver...");
       createPeer(false, peerId);
       peer.signal(signal);
     }
   });
+};
 
-  socket.on("disconnect", () => {
-    console.warn("Disconnected from signaling server.");
-  });
-}
-
-// Initialize camera
-async function initCamera(videoElementId) {
-  try {
-    myStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: false,
-    });
-
-    // Display local camera feed
-    const videoElement = document.getElementById(videoElementId);
-    videoElement.srcObject = myStream;
-    console.log("Camera initialized.");
-  } catch (error) {
-    console.error("Error accessing camera:", error);
-    alert("Camera access is required for this app.");
-  }
-}
-
-// Create a WebRTC peer
-function createPeer(initiator, peerId) {
+const createPeer = (initiator, peerId) => {
   peer = new SimplePeer({
     initiator,
     stream: myStream,
-    config: servers,
+    // config: servers,
+    objectMode: true,
   });
+
+  peer.data = {
+    id: peerId,
+  };
 
   peer.on("signal", (data) => {
     console.log("Sending signal data...");
     socket.emit("signal", peerId, data);
   });
 
-  peer.on("stream", (stream) => {
-    console.log("Receiving remote stream...");
-    remoteStream = stream;
+  peer.on("data", (data) => {
+    console.log("Data received: " + data);
 
-    // Display the remote stream
-    const remoteVideo = document.getElementById("remote-video");
-    remoteVideo.srcObject = remoteStream;
+    try {
+      data = JSON.parse(data);
+      if (data.type === "drawingData") {
+        console.log(data);
+      }
+      if (data.type === "message") {
+        console.log(data);
+      }
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   peer.on("close", () => {
     console.log("Peer connection closed.");
+    peer.destroy();
+    peer = null;
   });
 
   peer.on("error", (error) => {
     console.error("Peer connection error:", error);
   });
+};
+
+// Initialize camera
+// async function initCamera(videoElementId) {
+//   try {
+//     myStream = await navigator.mediaDevices.getUserMedia({
+//       video: true,
+//       audio: false,
+//     });
+
+//     // Display local camera feed
+//     const videoElement = document.getElementById(videoElementId);
+//     videoElement.srcObject = myStream;
+//     console.log("Camera initialized.");
+//   } catch (error) {
+//     console.error("Error accessing camera:", error);
+//     alert("Camera access is required for this app.");
+//   }
+// }
+
+async function initCanvasStream(canvasId) {
+  try {
+    const canvas = document.querySelector(`.canvas_stream`);
+    if (!canvas) {
+      throw new Error(`Canvas with ID ${canvasId} not found.`);
+    }
+
+    myStream = await canvas.captureStream(30);
+    console.log("Canvas stream initialized.");
+  } catch (error) {
+    console.error("Error initializing canvas stream:", error);
+    alert("Canvas access is required for this app.");
+  }
 }
 
-const startSessionButton = document.getElementById("start_session");
+const startSessionButton = document.querySelector(".start_session");
 startSessionButton.addEventListener("click", () => {
-  initApp(true, "hologram", "local-video");
+  initApp("canvas_stream");
 });
+
+// const testVideo = document.querySelector(".local_video");
+// testVideo.srcObject = myStream;
+// testVideo.play();

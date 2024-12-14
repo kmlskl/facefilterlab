@@ -17,12 +17,12 @@ let webcamRunning = false;
 const canvas2 = document.querySelector(".canvas2");
 const canvas3 = document.querySelector(".canvas3");
 const canvas4 = document.querySelector(".canvas4");
-const canvasStream = document.querySelector(".canvas_stream");
+// const canvasStream = document.querySelector(".canvas_stream");
 
 const canvas2Ctx = canvas2.getContext("2d");
 const canvas3Ctx = canvas3.getContext("2d");
 const canvas4Ctx = canvas4.getContext("2d");
-const canvasStreamCtx = canvasStream.getContext("2d");
+// const canvasStreamCtx = canvasStream.getContext("2d");
 
 // mediapipe
 let imageSegmenter;
@@ -245,8 +245,8 @@ async function predictWebcam() {
   canvas4.width = squareSize;
   canvas4.height = squareSize;
 
-  canvasStream.width = squareSize;
-  canvasStream.height = squareSize;
+  // canvasStream.width = squareSize;
+  // canvasStream.height = squareSize;
 
   // draw the cropped and mirrored video frame
   canvasCtx.save();
@@ -370,8 +370,8 @@ function callbackForVideo(result) {
   canvas4Ctx.clearRect(0, 0, canvas4.width, canvas4.height);
   canvas4Ctx.drawImage(canvasElement, 0, 0);
 
-  canvasStreamCtx.clearRect(0, 0, canvasStream.width, canvasStream.height);
-  canvasStreamCtx.drawImage(canvasElement, 0, 0);
+  // canvasStreamCtx.clearRect(0, 0, canvasStream.width, canvasStream.height);
+  // canvasStreamCtx.drawImage(canvasElement, 0, 0);
 }
 
 async function enableCam() {

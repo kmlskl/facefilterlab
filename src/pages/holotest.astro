@@ -1,4 +1,9 @@
 ---
+import { getLocalIPAddress } from "../utils/getLocalIP";
+
+const localIP = getLocalIPAddress();
+const serverUrl = `https://${localIP}:2000`;
+
 import "@/styles/reset.css";
 import "@/styles/style.css";
 ---
@@ -13,16 +18,18 @@ import "@/styles/style.css";
     <h1 class="hidden">Webcam Image Segmentation</h1>
     <section id="demos" class="invisible">
       <h2 class="hidden">Webcam Segmentation</h2>
-      <p>
-        Hold objects close to your webcam to see segmentation in real-time.<br
-        />
-        Click the button below to enable or disable the webcam.
-      </p>
       <div class="absolute">
         <button id="webcamButton">ENABLE SEGMENTATION</button>
+        <button class="start_session">START SERVER</button>
         <button id="saveButton">SAVE IMAGE</button>
       </div>
       <video class="hidden" id="webcam" autoplay playsinline muted></video>
+      <!-- <video class="local_video" autoplay playsinline muted></video> -->
+      <canvas
+        class="canvas_stream hidden"
+        id="overlay"
+        width="1280"
+        height="720"></canvas>
       <div class="container">
         <canvas class="canvas1"></canvas>
         <canvas class="canvas2"></canvas>
@@ -30,6 +37,9 @@ import "@/styles/style.css";
         <canvas class="canvas4"></canvas>
       </div>
     </section>
-    <script src="/src/scripts/segmentationtest.js" type="module"></script>
+    <script src="/src/scripts/segmentation.js" type="module"></script>
+    <script src={`${serverUrl}/socket.io/socket.io.js`} is:inline></script>
+    <script src="/simplepeer.min.js" is:inline></script>
+    <script src="/webrtc.js" type="module"></script>
   </body>
 </html>

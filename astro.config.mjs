@@ -12,9 +12,10 @@ export default defineConfig({
       },
     },
     server: {
+      host: true,
       proxy: {
         "/socket.io": {
-          target: "https://localhost:2000", // Ensure this is the correct URL for your signaling server
+          target: "https://192.168.0.138:2000", // Ensure this is the correct URL for your signaling server
           ws: true, // Enable WebSocket proxying
           changeOrigin: true, // Adjust origin header to match target
           secure: false, // Allow self-signed certificates for localhost
