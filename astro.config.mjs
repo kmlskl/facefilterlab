@@ -1,9 +1,17 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import { viteStaticCopy } from "vite-plugin-static-copy"; // For copying WASM files during build
+import { getLocalIPAddress } from "./src/utils/getLocalIP";
+import fs from "fs";
+
+const localIP = getLocalIPAddress();
+const serverUrl = `https://${localIP}:2000`;
 
 export default defineConfig({
   vite: {
+    define: {
+      LOCAL_IP: JSON.stringify(localIP),
+    },
     resolve: {
       alias: {
         // Alias the Mediapipe WASM folder to a virtual path
@@ -13,9 +21,13 @@ export default defineConfig({
     },
     server: {
       host: true,
+      https: {
+        key: fs.readFileSync("./certs/key2.pem"), // Path to your key file
+        cert: fs.readFileSync("./certs/cert2.pem"), // Path to your cert file
+      },
       proxy: {
         "/socket.io": {
-          target: "https://192.168.0.138:2000", // Ensure this is the correct URL for your signaling server
+          target: serverUrl, // Ensure this is the correct URL for your signaling server
           ws: true, // Enable WebSocket proxying
           changeOrigin: true, // Adjust origin header to match target
           secure: false, // Allow self-signed certificates for localhost

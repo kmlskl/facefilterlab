@@ -24,6 +24,11 @@ const canvas2Ctx = canvas2.getContext("2d");
 const canvas3Ctx = canvas3.getContext("2d");
 const canvas4Ctx = canvas4.getContext("2d");
 
+// canvas for streaming to the tablet
+const canvasStream = document.querySelector(".canvas_stream");
+const canvasStreamCtx = canvasStream.getContext("2d");
+const streamBackgroundColor = "#f7ebdd";
+
 // webcam variables
 let videoWidth = 0;
 let videoHeight = 0;
@@ -44,19 +49,20 @@ let faceDrawings = [];
 let currentFaceLandmarks;
 
 const tools = {
-  brushYellow: { color: "#fece00", strokeWidth: 7 },
-  brushOrange: { color: "#ff7664", strokeWidth: 7 },
-  brushPink: { color: "#ff8ce9", strokeWidth: 7 },
-  brushPurple: { color: "#9067f3", strokeWidth: 7 },
-  brushRed: { color: "#e74c3c", strokeWidth: 7 },
-  brushGreen: { color: "#ace90a", strokeWidth: 7 },
-  pencilBig: { color: "#000000", strokeWidth: 5 },
-  pencilSmall: { color: "#000000", strokeWidth: 2 },
-  eraser: { color: "#ffffff00", strokeWidth: 10 },
+  brushYellow: { mode: "paint", color: "#fece00", strokeWidth: 7 },
+  brushOrange: { mode: "paint", color: "#ff7664", strokeWidth: 7 },
+  brushPink: { mode: "paint", color: "#ff8ce9", strokeWidth: 7 },
+  brushPurple: { mode: "paint", color: "#9067f3", strokeWidth: 7 },
+  brushRed: { mode: "paint", color: "#e74c3c", strokeWidth: 7 },
+  brushGreen: { mode: "paint", color: "#ace90a", strokeWidth: 7 },
+  pencilBig: { mode: "paint", color: "#000000", strokeWidth: 5 },
+  pencilSmall: { mode: "paint", color: "#000000", strokeWidth: 2 },
+  eraser: { mode: "erase", color: "#00000000", strokeWidth: 10 },
 };
+
 let currentTool = tools.pencilBig;
-let currentDrawingColor = currentTool.color;
-let currentStrokeWidth = currentTool.strokeWidth;
+// let currentDrawingColor = currentTool.color;
+// let currentStrokeWidth = currentTool.strokeWidth;
 
 // ---------------------------
 // WebRTC Setup
@@ -180,7 +186,9 @@ const handleTouchEnd = () => {
     refMidpoint: midpoint, // Reference midpoint
     refAngle: angle, // Reference angle
     refDistance: distance, // Reference scale
-    color: currentDrawingColor, // Stroke color
+    color: currentTool.color, // Stroke color
+    mode: currentTool.mode, // 'paint' or 'erase'
+    strokeWidth: currentTool.strokeWidth, // Stroke width
   };
 
   faceDrawings.push(drawing);
@@ -190,16 +198,46 @@ const handleTouchEnd = () => {
 };
 
 // drawing freehand on canvas (normalized)
-const drawOnCanvas = (points, ctx, color) => {
+const drawOnCanvas = (points, ctx, tool) => {
   if (points.length < 2) return;
+
+  ctx.save(); // Save the current state
+
+  // Set composite operation based on the tool's mode
+  if (tool.mode === "erase") {
+    ctx.globalCompositeOperation = "destination-out";
+  } else {
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  ctx.strokeStyle = tool.color;
+  ctx.lineWidth = tool.strokeWidth;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
   ctx.beginPath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 5;
   ctx.moveTo(points[0].x, points[0].y);
+
   for (let i = 1; i < points.length; i++) {
     ctx.lineTo(points[i].x, points[i].y);
   }
+
   ctx.stroke();
+  ctx.restore(); // Restore to the original state
+};
+
+// erase drawing from facedrawings erray
+const eraseDrawing = () => {
+  // Create a copy of the current faceDrawings array
+  const newFaceDrawings = [...faceDrawings];
+
+  // Remove the last drawing
+  if (newFaceDrawings.length > 0) {
+    newFaceDrawings.pop();
+  }
+
+  // Return the updated array
+  faceDrawings = newFaceDrawings;
 };
 
 // Render pinned drawings on face
@@ -215,9 +253,6 @@ const renderPinnedDrawings = (allPinnedDrawings, landmarks, ctx) => {
   };
   const { angle: currentAngle, distance: currentDistance } =
     computeAngleAndScale(leftIrisCenter, rightIrisCenter);
-
-  ctx.strokeStyle = "blue";
-  ctx.lineWidth = 5;
 
   allPinnedDrawings.forEach((drawing) => {
     // Calculate scale and rotation differences
@@ -249,7 +284,13 @@ const renderPinnedDrawings = (allPinnedDrawings, landmarks, ctx) => {
     // Draw the transformed drawing
     if (transformedPoints.length < 2) return;
 
-    drawOnCanvas(transformedPoints, ctx, drawing.color);
+    const toolUsedForDrawing = {
+      mode: drawing.mode,
+      color: drawing.color,
+      strokeWidth: drawing.strokeWidth,
+    };
+
+    drawOnCanvas(transformedPoints, ctx, toolUsedForDrawing);
   });
 };
 
@@ -258,32 +299,32 @@ const renderPinnedDrawings = (allPinnedDrawings, landmarks, ctx) => {
 // ---------------------------
 
 // Get local IP address (optional, depends on your server setup)
-const getLocalIPAddress = async () => {
-  return new Promise((resolve, reject) => {
-    const pc = new RTCPeerConnection({ iceServers: [] }); // Create a new peer connection
-    pc.createDataChannel(""); // Create a dummy data channel
+// const getLocalIPAddress = async () => {
+//   return new Promise((resolve, reject) => {
+//     const pc = new RTCPeerConnection({ iceServers: [] }); // Create a new peer connection
+//     pc.createDataChannel(""); // Create a dummy data channel
 
-    pc.createOffer()
-      .then((offer) => pc.setLocalDescription(offer)) // Set local description
-      .catch(reject);
+//     pc.createOffer()
+//       .then((offer) => pc.setLocalDescription(offer)) // Set local description
+//       .catch(reject);
 
-    pc.onicecandidate = (event) => {
-      if (!event || !event.candidate) return; // No candidate, skip
-      const candidate = event.candidate.candidate; // Get the ICE candidate
-      const ipMatch = candidate.match(/(\d{1,3}(\.\d{1,3}){3})/); // Match IPv4 address
-      if (ipMatch) {
-        resolve(ipMatch[1]); // Resolve with the IP address
-        pc.close(); // Close the peer connection
-      }
-    };
+//     pc.onicecandidate = (event) => {
+//       if (!event || !event.candidate) return; // No candidate, skip
+//       const candidate = event.candidate.candidate; // Get the ICE candidate
+//       const ipMatch = candidate.match(/(\d{1,3}(\.\d{1,3}){3})/); // Match IPv4 address
+//       if (ipMatch) {
+//         resolve(ipMatch[1]); // Resolve with the IP address
+//         pc.close(); // Close the peer connection
+//       }
+//     };
 
-    pc.onicecandidateerror = (error) => reject(error); // Handle errors
-  });
-};
+//     pc.onicecandidateerror = (error) => reject(error); // Handle errors
+//   });
+// };
 
 // Initialize Socket.io connection
 const initSocket = (localIP) => {
-  const serverUrl = `https://${localIP}:2000`;
+  const serverUrl = `https://${LOCAL_IP}:2000`;
 
   console.log("Connecting to server:", serverUrl);
   socket = io.connect(serverUrl);
@@ -407,7 +448,7 @@ async function initCanvasStream(canvasId) {
       throw new Error(`Canvas with class ${canvasId} not found.`);
     }
 
-    myStream = await canvas.captureStream(30);
+    myStream = await canvas.captureStream(60);
 
     console.log("Canvas stream initialized.");
 
@@ -453,6 +494,8 @@ const initializeCanvases = () => {
   canvas3.height = squareSize;
   canvas4.width = squareSize;
   canvas4.height = squareSize;
+  canvasStream.width = squareSize;
+  canvasStream.height = squareSize;
 };
 
 // Webcam prediction
@@ -610,8 +653,10 @@ const callbackForVideo = (result) => {
       };
     });
 
+    const toolBeingUsed = { ...currentTool };
+
     // Draw the in-progress line
-    drawOnCanvas(transformedInProgress, canvasCtx, currentDrawingColor);
+    drawOnCanvas(transformedInProgress, canvasCtx, toolBeingUsed);
   }
 
   // Update additional canvases if needed
@@ -623,6 +668,12 @@ const callbackForVideo = (result) => {
 
   canvas4Ctx.clearRect(0, 0, canvas4.width, canvas4.height);
   canvas4Ctx.drawImage(canvasElement, 0, 0);
+
+  // Clear canvasStream
+  canvasStreamCtx.clearRect(0, 0, canvasStream.width, canvasStream.height);
+  canvasStreamCtx.fillStyle = streamBackgroundColor;
+  canvasStreamCtx.fillRect(0, 0, canvasStream.width, canvasStream.height);
+  canvasStreamCtx.drawImage(canvasElement, 0, 0);
 
   // Update the stream canvas for WebRTC
   //   canvasStreamCtx.clearRect(0, 0, canvasStream.width, canvasStream.height);
@@ -673,15 +724,16 @@ const handlePeerData = (data) => {
         const selectedTool = tools[parsedData.tool];
         if (selectedTool) {
           currentTool = selectedTool;
-          currentDrawingColor = selectedTool.color;
-          currentStrokeWidth = selectedTool.strokeWidth;
-          console.log("Tool changed to:", currentTool);
+          if (currentTool.mode === "erase") {
+            eraseDrawing();
+          }
         } else {
           console.warn("Received unknown tool:", parsedData.tool);
         }
         break;
       case "touchstart":
         handleTouchStart(parsedData.x, parsedData.y);
+
         break;
       case "touchmove":
         handleTouchMove(parsedData.x, parsedData.y);
@@ -720,8 +772,8 @@ const initApp = async () => {
     );
 
     // Initialize WebRTC components
-    const localIP = await getLocalIPAddress();
-    initSocket(localIP);
+    // const localIP = await getLocalIPAddress();
+    initSocket();
 
     await initCanvasStream("canvas1");
 
@@ -734,10 +786,6 @@ const initApp = async () => {
 
 // Start the application
 initApp();
-
-// ---------------------------
-// Optional: UI Controls
-// ---------------------------
 
 // the following code was for testing on the hologram page to set up the drawing onto segmentation
 //it will just rest here for now

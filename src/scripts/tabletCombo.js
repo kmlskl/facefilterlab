@@ -433,28 +433,28 @@ function startDrawing() {
 // WebRTC Helper Functions
 // ---------------------------
 
-const getLocalIPAddress = async () => {
-  return new Promise((resolve, reject) => {
-    const pc = new RTCPeerConnection({ iceServers: [] }); // Create a new peer connection
-    pc.createDataChannel(""); // Create a dummy data channel
+// const getLocalIPAddress = async () => {
+//   return new Promise((resolve, reject) => {
+//     const pc = new RTCPeerConnection({ iceServers: [] }); // Create a new peer connection
+//     pc.createDataChannel(""); // Create a dummy data channel
 
-    pc.createOffer()
-      .then((offer) => pc.setLocalDescription(offer)) // Set local description
-      .catch(reject);
+//     pc.createOffer()
+//       .then((offer) => pc.setLocalDescription(offer)) // Set local description
+//       .catch(reject);
 
-    pc.onicecandidate = (event) => {
-      if (!event || !event.candidate) return; // No candidate, skip
-      const candidate = event.candidate.candidate; // Get the ICE candidate
-      const ipMatch = candidate.match(/(\d{1,3}(\.\d{1,3}){3})/); // Match IPv4 address
-      if (ipMatch) {
-        resolve(ipMatch[1]); // Resolve with the IP address
-        pc.close(); // Close the peer connection
-      }
-    };
+//     pc.onicecandidate = (event) => {
+//       if (!event || !event.candidate) return; // No candidate, skip
+//       const candidate = event.candidate.candidate; // Get the ICE candidate
+//       const ipMatch = candidate.match(/(\d{1,3}(\.\d{1,3}){3})/); // Match IPv4 address
+//       if (ipMatch) {
+//         resolve(ipMatch[1]); // Resolve with the IP address
+//         pc.close(); // Close the peer connection
+//       }
+//     };
 
-    pc.onicecandidateerror = (error) => reject(error); // Handle errors
-  });
-};
+//     pc.onicecandidateerror = (error) => reject(error); // Handle errors
+//   });
+// };
 
 // async function initCamera(videoElement) {
 //   try {
@@ -504,10 +504,10 @@ const getLocalIPAddress = async () => {
 
 // Initialize Socket.io connection
 
-const initSocket = (localIP) => {
-  const serverUrl = `https://${localIP}:2000`;
+const initSocket = () => {
+  const serverUrl = `https://${LOCAL_IP}:2000`;
 
-  socket = io.connect(serverUrl);
+  socket = io.connect(serverUrl, { transports: ["websocket", "polling"] });
 
   let clientId = localStorage.getItem("clientId");
   if (!clientId) {
@@ -575,6 +575,10 @@ function createPeer(initiator, peerId) {
     socket.emit("signal", peerId, data);
   });
 
+  peer.on("icecandidate", (event) => {
+    console.log("ICE Candidate:", event.candidate);
+  });
+
   peer.on("stream", (stream) => {
     console.log("Receiving remote stream...");
     remoteStream = stream;
@@ -628,8 +632,8 @@ function createPeer(initiator, peerId) {
 
 async function initApp() {
   try {
-    const localIP = await getLocalIPAddress();
-    initSocket(localIP);
+    // const localIP = await getLocalIPAddress();
+    initSocket();
   } catch (error) {
     console.error("Error initializing the app:", error);
   }

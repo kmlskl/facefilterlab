@@ -1,8 +1,11 @@
 ---
-import { getLocalIPAddress } from "../utils/getLocalIP";
+// import { getLocalIPAddress } from "../utils/getLocalIP";
 
-const localIP = getLocalIPAddress();
-const serverUrl = `https://${localIP}:2000`;
+// const localIP = getLocalIPAddress();
+// LOCAL IP is a vite defined variable
+const serverUrl = `https://${LOCAL_IP}:2000`;
+
+console.log("loaded");
 
 import "@/styles/reset.css";
 import "@/styles/styleTablet.css";

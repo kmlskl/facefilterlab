@@ -1,8 +1,9 @@
 ---
 import { getLocalIPAddress } from "../utils/getLocalIP";
 
-const localIP = getLocalIPAddress();
-const serverUrl = `https://${localIP}:2000`;
+// const localIP = getLocalIPAddress();
+// LOCAL IP is a vite defined variable
+const serverUrl = `https://${LOCAL_IP}:2000`;
 
 import "@/styles/reset.css";
 import "@/styles/style.css";
@@ -12,8 +13,8 @@ import "@/styles/style.css";
   <head>
     <meta charset="utf-8" />
     <link rel="manifest" href="/manifestHolo.json" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://use.typekit.net/zqf0sem.css" />
     <title></title>
   </head>
   <body>
@@ -23,11 +24,8 @@ import "@/styles/style.css";
       <div class="absolute"></div>
       <video class="hidden" id="webcam" autoplay playsinline muted></video>
       <!-- <video class="local_video" autoplay playsinline muted></video> -->
-      <canvas
-        class="canvas_stream hidden"
-        id="overlay"
-        width="1280"
-        height="720"></canvas>
+      <canvas class="canvas_stream" id="canvasStream" style="display: none;"
+      ></canvas>
       <div class="container">
         <canvas class="canvas1"></canvas>
         <canvas class="canvas2"></canvas>
