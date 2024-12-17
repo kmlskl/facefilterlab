@@ -22,8 +22,8 @@ export default defineConfig({
     server: {
       host: true,
       https: {
-        key: fs.readFileSync("./certs/key2.pem"), // Path to your key file
-        cert: fs.readFileSync("./certs/cert2.pem"), // Path to your cert file
+        key: fs.readFileSync("./certs/key.pem"), // Path to your key file
+        cert: fs.readFileSync("./certs/cert.pem"), // Path to your cert file
       },
       proxy: {
         "/socket.io": {
