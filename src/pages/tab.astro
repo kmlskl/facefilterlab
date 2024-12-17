@@ -1,0 +1,186 @@
+---
+import { getLocalIPAddress } from "../utils/getLocalIP";
+
+const localIP = getLocalIPAddress();
+const serverUrl = `https://${localIP}:2000`;
+
+import "@/styles/reset.css";
+import "@/styles/styleTablet.css";
+import lottie from "lottie-web";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="manifest" href="/manifestTab.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tablet Interface</title>
+  </head>
+
+  <body class="tablet--body">
+    <nav class="navbar none">
+      <div class="navbar--button__empty-left none">
+        <img src="/assets/button_empty.png" alt="empty button" />
+      </div>
+
+      <button class="navbar--button__back-drawing none">
+        <img
+          src="/assets/button_back.svg"
+          alt="icon for back button to drawing page"
+        />
+      </button>
+
+      <button class="navbar--button__back-options none">
+        <img src="/assets/button_back.svg" alt="icon for back button" />
+      </button>
+
+      <button class="navbar--button__undo">
+        <img src="/assets/button_undo.svg" alt="icon for undo button" />
+      </button>
+
+      <h2 class="nav__title">
+        The<br />
+        <span class="fat--title">Face Filter Lab</span>
+      </h2>
+
+      <button class="navbar--button__next">
+        <img src="/assets/button_next.svg" alt="icon for next button" />
+      </button>
+
+      <div class="navbar--button__empty-right none">
+        <img src="/assets/button_empty.png" alt="empty button" />
+      </div>
+    </nav>
+
+    <div class="page">
+      <div class="page start">
+        <h1 class="title above">
+          The<br />
+          <span class="fat--title">Face Filter Lab</span>
+        </h1>
+        <h1 class="title underneath">
+          The<br />
+          <span class="fat--title">Face Filter Lab</span>
+        </h1>
+        <button class="start--button">start</button>
+
+        <div id="idle-animation" class="lottie"></div>
+      </div>
+
+      <div class="page experience none">
+        <div class="canvas_container">
+          <video class="remote_video none" autoplay playsinline></video>
+          <canvas class="face_canvas"> </canvas>
+        </div>
+        <div class="instructions">
+          <p class="instruction_text instruction1">
+            Laat iemand voor<br /> de <span class="cursive--text red--text"
+              >camera</span
+            > staan.
+          </p>
+
+          <p class="instruction_text instruction2 none">
+            <span class="cursive--text purple--text">Super!</span>
+          </p>
+
+          <p class="instruction_text instruction3 none">
+            <span class="cursive--text pink--text">Teken </span>iets op het
+            gezicht.
+          </p>
+
+          <p class="instruction_text instruction4 none">
+            <span class="cursive--text purple--text">Perfect! </span>Ga zo door.
+          </p>
+          <img class="instruction_check" src="/assets/button_next.svg" alt="" />
+        </div>
+
+        <div class="tools none">
+          <button class="tool" data-tool="brushYellow">
+            <img src="/assets/brush_yellow.svg" alt="" width="120px" />
+          </button>
+          <button class="tool" data-tool="brushOrange">
+            <img src="/assets/brush_orange.svg" alt="" width="120px" />
+          </button>
+          <button class="tool" data-tool="brushPink">
+            <img src="/assets/brush_pink.svg" alt="" width="120px" />
+          </button>
+          <button class="tool" data-tool="brushPurple">
+            <img src="/assets/brush_purple.svg" alt="" width="120px" />
+          </button>
+          <button class="tool" data-tool="brushRed">
+            <img src="/assets/brush_red.svg" alt="" width="120px" />
+          </button>
+          <button class="tool" data-tool="brushGreen">
+            <img src="/assets/brush_green.svg" alt="" width="120px" />
+          </button>
+          <button class="tool selected" data-tool="pencilBig">
+            <img src="/assets/pencil_big.svg" alt="" width="40px" />
+          </button>
+          <button class="tool" data-tool="pencilSmall">
+            <img src="/assets/pencil_small.svg" alt="" width="32px" />
+          </button>
+          <button class="tool" data-tool="eraser">
+            <img src="/assets/eraser.svg" alt="" width="80px" />
+          </button>
+        </div>
+
+        <div class="page option none">
+          <canvas class="face--canvas"></canvas>
+          <div class="option--text__container">
+            <button class="option--text__delete button_red">
+              <img src="/assets/cancel.svg" alt="" />
+              Verwijderen
+            </button>
+            <button class="option--text__save button_green">
+              <img src="/assets/check.svg" alt="" />
+              Opslaan</button
+            >
+          </div>
+        </div>
+
+        <div class="page save__page none">
+          <h2 class="cursive--text pink--text">Zeker?</h2>
+          <p>
+            Deze foto zal je kunnen vinden via de google-drive link op het einde
+            van het festival.
+          </p>
+          <div class="option--text__container">
+            <button class="save--text__back button_red">Terug</button>
+            <button class="save--text__save button_green">Opslaan</button>
+          </div>
+        </div>
+        <div class="page delete__page none">
+          <h2>
+            Wil je je creatie <span class="cursive--text pink--text"
+              >verwijderen</span
+            >?
+          </h2>
+          <p>
+            Eens je creatie is verwijderd kunnen we hem niet meer terughalen...
+          </p>
+          <div class="option--text__container">
+            <button class="delete--text__back button_green">Terug</button>
+            <button class="delete--text__delete button_red">Verwijderen</button>
+          </div>
+        </div>
+
+        <div class="page final__page none">
+          <h2>
+            <span class="cursive--text red--text">Bedankt</span> voor het spelen!
+          </h2>
+          <p>
+            We hopen dat het is gelukt!<br /> Je kan gerust nog een nieuwe filter
+            maken.
+          </p>
+          <div class="final--container">
+            <button class="final--text button_green">Opnieuw spelen</button>
+          </div>
+        </div>
+      </div>
+
+      <script src={`${serverUrl}/socket.io/socket.io.js`} is:inline></script>
+      <script src="/simplepeer.min.js" is:inline></script>
+      <script src="/src/scripts/tabletCombo.js" type="module"></script>
+    </div>
+  </body>
+</html>

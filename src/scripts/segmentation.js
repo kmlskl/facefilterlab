@@ -192,6 +192,30 @@ function mapToFace(drawnPoints, landmarks) {
 
 // render pinned drawings on face
 function renderPinnedDrawings(allPinnedDrawings, landmarks, ctx) {
+  console.log("landmarks", landmarks);
+  // we need to calculate the angle and scale of our drawing so we take reference points from the eyes
+  const leftIris = landmarks.slice(468, 472);
+  const rightIris = landmarks.slice(473, 477);
+
+  // center points of the iris indices
+  const leftIrisCenter = leftIris.reduce(
+    (acc, lm) => ({ x: acc.x + lm.x / 4, y: acc.y + lm.y / 4 }),
+    { x: 0, y: 0 },
+  );
+  const rightIrisCenter = rightIris.reduce(
+    (acc, lm) => ({ x: acc.x + lm.x / 4, y: acc.y + lm.y / 4 }),
+    { x: 0, y: 0 },
+  );
+
+  // angle and scale calculation
+  const deltaX = rightIrisCenter.x - leftIrisCenter.x;
+  const deltaY = rightIrisCenter.y - leftIrisCenter.y;
+  const rotationAngle = Math.atan2(deltaY, deltaX); // angle will be in radians
+  const eyeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); // distance is for scale
+
+  const baselineDistance = 0.05; // Example value; tune this to your setup
+  const scale = eyeDistance / baselineDistance;
+
   ctx.strokeStyle = "blue";
   ctx.lineWidth = 5;
 
@@ -220,8 +244,9 @@ function hasGetUserMedia() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
 
-// webcam Prediction
+// webcam prediction
 let lastWebcamTime = -1;
+
 async function predictWebcam() {
   if (video.currentTime === lastWebcamTime) {
     if (webcamRunning) window.requestAnimationFrame(predictWebcam);
@@ -273,7 +298,7 @@ async function predictWebcam() {
     imageSegmenter.segmentForVideo(video, startTimeMs, callbackForVideo);
   }
 
-  // detect face and landmarks
+  // detecting face and landmarks
   if (faceLandmarker) {
     // console.log("facelandmarker", FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS);
     const results = await faceLandmarker.detectForVideo(video, startTimeMs);

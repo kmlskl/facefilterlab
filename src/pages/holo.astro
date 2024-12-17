@@ -1,0 +1,44 @@
+---
+import { getLocalIPAddress } from "../utils/getLocalIP";
+
+const localIP = getLocalIPAddress();
+const serverUrl = `https://${localIP}:2000`;
+
+import "@/styles/reset.css";
+import "@/styles/style.css";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="manifest" href="/manifestHolo.json" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Segmentation Test</title>
+  </head>
+  <body>
+    <h1 class="hidden">Webcam Image Segmentation</h1>
+    <section id="demos" class="invisible">
+      <h2 class="hidden">Webcam Segmentation</h2>
+      <div class="absolute"></div>
+      <video class="hidden" id="webcam" autoplay playsinline muted></video>
+      <!-- <video class="local_video" autoplay playsinline muted></video> -->
+      <canvas
+        class="canvas_stream hidden"
+        id="overlay"
+        width="1280"
+        height="720"></canvas>
+      <div class="container">
+        <canvas class="canvas1"></canvas>
+        <canvas class="canvas2"></canvas>
+        <canvas class="canvas3"></canvas>
+        <canvas class="canvas4"></canvas>
+      </div>
+    </section>
+    <!-- <script src="/src/scripts/segmentationTrick.js" type="module"></script> -->
+    <script src={`${serverUrl}/socket.io/socket.io.js`} is:inline></script>
+    <script src="/simplepeer.min.js" is:inline></script>
+    <script src="/src/scripts/segmentCombo.js" type="module"></script>
+    <!-- <script src="/webrtc.js" type="module"></script> -->
+  </body>
+</html>
