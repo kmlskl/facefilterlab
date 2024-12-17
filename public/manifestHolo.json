@@ -1,9 +1,9 @@
 {
-  "name": "Hologram: Face Filter Lab",
-  "short_name": "Holo: FFL",
+  "name": "",
+  "short_name": "",
   "description": "Live face filter: facepainting fun with your friends",
   "start_url": "/holo",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [

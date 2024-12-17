@@ -9,30 +9,35 @@ import {
 // Segmentation and Drawing Setup
 // ---------------------------
 
-// Webcam & canvas handling
+// webcam & canvas handling
 const video = document.querySelector("#webcam");
 const canvasElement = document.querySelector(".canvas1");
 const canvasCtx = canvasElement.getContext("2d");
 const demosSection = document.querySelector("#demos");
 
-// Additional canvases
+// extra canvases for hologram pyramid
 const canvas2 = document.querySelector(".canvas2");
 const canvas3 = document.querySelector(".canvas3");
 const canvas4 = document.querySelector(".canvas4");
-// const canvasStream = document.querySelector(".canvas_stream");
 
 const canvas2Ctx = canvas2.getContext("2d");
 const canvas3Ctx = canvas3.getContext("2d");
 const canvas4Ctx = canvas4.getContext("2d");
-// const canvasStreamCtx = canvasStream.getContext("2d");
 
-// Mediapipe
+// webcam variables
+let videoWidth = 0;
+let videoHeight = 0;
+let squareSize = 0;
+let xOffset = 0;
+let yOffset = 0;
+
+// mediapipe variables
 let imageSegmenter;
 let faceLandmarker;
 let runningMode = "VIDEO";
 let labels;
 
-// Drawing
+// drawing variables
 let isDrawing = false;
 let drawnPoints = [];
 let faceDrawings = [];
@@ -53,21 +58,13 @@ let currentTool = tools.pencilBig;
 let currentDrawingColor = currentTool.color;
 let currentStrokeWidth = currentTool.strokeWidth;
 
-// Global variables for webcam
-let videoWidth = 0;
-let videoHeight = 0;
-let squareSize = 0;
-let xOffset = 0;
-let yOffset = 0;
-
 // ---------------------------
 // WebRTC Setup
 // ---------------------------
 
 let socket; // Socket.io connection
 let peer; // WebRTC peer
-let myStream; // Local media stream
-let remoteStream; // Stream received from the peer
+let myStream; // local cam stream
 
 const servers = {
   iceServers: [
@@ -81,7 +78,7 @@ const servers = {
 // Initialization Functions
 // ---------------------------
 
-// Setup Mediapipe
+// setting up media pipe tasks
 const createImageSegmenter = async () => {
   const visionFileset = await FilesetResolver.forVisionTasks("/wasm");
   imageSegmenter = await ImageSegmenter.createFromOptions(visionFileset, {
@@ -110,7 +107,7 @@ const createFaceLandmarker = async () => {
   demosSection.classList.remove("invisible");
 };
 
-// Helper functions for segmentation and drawing
+// helper functions for segmentation and drawing
 const computeIrisCenter = (landmarks, startIndex) => {
   let cx = 0,
     cy = 0;
@@ -130,79 +127,69 @@ const computeAngleAndScale = (leftIrisCenter, rightIrisCenter) => {
   return { angle, distance };
 };
 
-// Drawing events
-canvasElement.addEventListener("mousedown", (e) => {
+// functions for handling the the touch events from the peer and drawing with them
+const handleTouchStart = (x, y) => {
   isDrawing = true;
-  drawnPoints = [];
-});
+  drawnPoints = [{ x, y }];
+};
 
-canvasElement.addEventListener("mousemove", (e) => {
+const handleTouchMove = (x, y) => {
   if (!isDrawing || !currentFaceLandmarks) return;
+  drawnPoints.push({ x, y });
+};
 
-  const rect = canvasElement.getBoundingClientRect();
-  const normalizedX = (e.clientX - rect.left) / rect.width;
-  const normalizedY = (e.clientY - rect.top) / rect.height;
+const handleTouchEnd = () => {
+  if (!isDrawing || drawnPoints.length === 0 || !currentFaceLandmarks) return;
 
-  drawnPoints.push({ x: normalizedX, y: normalizedY });
-});
-
-canvasElement.addEventListener("mouseup", () => {
   isDrawing = false;
-  if (drawnPoints.length && currentFaceLandmarks) {
-    // Capture the reference frame at the moment of drawing
-    const leftIrisCenter = computeIrisCenter(currentFaceLandmarks, 468); // Left iris landmarks
-    const rightIrisCenter = computeIrisCenter(currentFaceLandmarks, 473); // Right iris landmarks
-    const midpoint = {
-      x: (leftIrisCenter.x + rightIrisCenter.x) / 2,
-      y: (leftIrisCenter.y + rightIrisCenter.y) / 2,
-    };
-    const { angle, distance } = computeAngleAndScale(
-      leftIrisCenter,
-      rightIrisCenter,
-    );
 
-    // Store the drawing in canonical coordinates relative to the reference frame
-    const canonicalPoints = drawnPoints.map((p) => {
-      // Translate so that midpoint is the origin
-      let tx = p.x - midpoint.x;
-      let ty = p.y - midpoint.y;
+  // Process drawnPoints as per existing logic
+  const leftIrisCenter = computeIrisCenter(currentFaceLandmarks, 468); // Left iris landmarks
+  const rightIrisCenter = computeIrisCenter(currentFaceLandmarks, 473); // Right iris landmarks
+  const midpoint = {
+    x: (leftIrisCenter.x + rightIrisCenter.x) / 2,
+    y: (leftIrisCenter.y + rightIrisCenter.y) / 2,
+  };
+  const { angle, distance } = computeAngleAndScale(
+    leftIrisCenter,
+    rightIrisCenter,
+  );
 
-      // Rotate to align with the reference frame's x-axis
-      const cosA = Math.cos(-angle);
-      const sinA = Math.sin(-angle);
-      const rx = tx * cosA - ty * sinA;
-      const ry = tx * sinA + ty * cosA;
+  // we need to store the drawing in canonical coordinates relative to the ref frame
+  const canonicalPoints = drawnPoints.map((p) => {
+    // translating so that our midpoint is the origin
+    let tx = p.x - midpoint.x;
+    let ty = p.y - midpoint.y;
 
-      // Scale based on the reference distance
-      const sx = rx / distance;
-      const sy = ry / distance;
+    // rotate to align with the reference frame's x-axis
+    const cosA = Math.cos(-angle);
+    const sinA = Math.sin(-angle);
+    const rx = tx * cosA - ty * sinA;
+    const ry = tx * sinA + ty * cosA;
 
-      return { x: sx, y: sy };
-    });
+    // scale based on the reference distance
+    const sx = rx / distance;
+    const sy = ry / distance;
 
-    // Store the drawing with its reference frame
-    faceDrawings.push({
-      canonicalPoints, // Points in canonical space
-      refMidpoint: midpoint, // Reference midpoint
-      refAngle: angle, // Reference angle
-      refDistance: distance, // Reference scale
-      color: currentDrawingColor,
-    });
+    return { x: sx, y: sy };
+  });
 
-    // Send drawing data via WebRTC
-    if (peer && peer.connected) {
-      peer.send(
-        JSON.stringify({
-          type: "drawingData",
-          data: faceDrawings[faceDrawings.length - 1],
-        }),
-      );
-    }
-  }
-  drawnPoints = [];
-});
+  // store the drawing with its reference frame
+  const drawing = {
+    canonicalPoints, // Points in canonical space
+    refMidpoint: midpoint, // Reference midpoint
+    refAngle: angle, // Reference angle
+    refDistance: distance, // Reference scale
+    color: currentDrawingColor, // Stroke color
+  };
 
-// Draw freehand on canvas (normalized)
+  faceDrawings.push(drawing);
+
+  // render the drawing immediately
+  renderPinnedDrawings(faceDrawings, currentFaceLandmarks, canvasCtx);
+};
+
+// drawing freehand on canvas (normalized)
 const drawOnCanvas = (points, ctx, color) => {
   if (points.length < 2) return;
   ctx.beginPath();
@@ -400,17 +387,6 @@ const createPeer = (peerId) => {
     }
   });
 
-  peer.on("stream", (stream) => {
-    // Handle remote stream if needed
-    // remoteStream = stream;
-    // Example: Attach to a video element
-    // const remoteVideo = document.querySelector(".remote_video");
-    // if (remoteVideo) {
-    //   remoteVideo.srcObject = remoteStream;
-    //   remoteVideo.play();
-    // }
-  });
-
   peer.on("close", () => {
     console.log("Peer connection closed.");
     peer.destroy();
@@ -422,7 +398,8 @@ const createPeer = (peerId) => {
   });
 };
 
-// Initialize Canvas Stream for WebRTC
+// we need to stream the canvas and not the webcam feed, because we are doing the segmentation
+// so we need to create a canvas stream
 async function initCanvasStream(canvasId) {
   try {
     const canvas = document.querySelector(`.${canvasId}`);
@@ -452,11 +429,13 @@ async function initCanvasStream(canvasId) {
 
 let lastWebcamTime = -1;
 
-// Check webcam access
+// check webcam access
 const hasGetUserMedia = () => {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 };
 
+// initialize the canvas once
+// i was initializing every frame by mistake before, so i separated that into a function
 const initializeCanvases = () => {
   videoWidth = video.videoWidth;
   videoHeight = video.videoHeight;
@@ -474,8 +453,6 @@ const initializeCanvases = () => {
   canvas3.height = squareSize;
   canvas4.width = squareSize;
   canvas4.height = squareSize;
-
-  //   console.log("Canvas sizes initialized to:", squareSize, squareSize);
 };
 
 // Webcam prediction
@@ -485,27 +462,7 @@ const predictWebcam = async () => {
     return;
   }
   lastWebcamTime = video.currentTime;
-
-  //   videoWidth = video.videoWidth;
-  //   videoHeight = video.videoHeight;
-  //   squareSize = Math.min(videoWidth, videoHeight);
-  //   xOffset = (videoWidth - squareSize) / 2;
-  //   yOffset = (videoHeight - squareSize) / 2;
-
-  //   canvasElement.width = squareSize;
-  //   canvasElement.height = squareSize;
-
-  //   canvas2.width = squareSize;
-  //   canvas2.height = squareSize;
-  //   canvas3.width = squareSize;
-  //   canvas3.height = squareSize;
-  //   canvas4.width = squareSize;
-  //   canvas4.height = squareSize;
-
-  //   canvasStream.width = squareSize;
-  //   canvasStream.height = squareSize;
-
-  // Draw the cropped and mirrored video frame
+  // Draw the cropped and mirrored video frame onto canvas
   canvasCtx.save();
   // Flip horizontally
   canvasCtx.translate(squareSize, 0);
@@ -560,7 +517,7 @@ const predictWebcam = async () => {
   if (webcamRunning) window.requestAnimationFrame(predictWebcam);
 };
 
-// Callback for image segmentation
+// callback for image segmentation
 const callbackForVideo = (result) => {
   const mask = result.categoryMask.getAsUint8Array();
 
@@ -672,7 +629,7 @@ const callbackForVideo = (result) => {
   //   canvasStreamCtx.drawImage(canvasElement, 0, 0);
 };
 
-// Enable webcam and start prediction loop
+// enable webcam and start the prediction loop
 let webcamRunning = false;
 const enableCam = async () => {
   try {
@@ -701,6 +658,42 @@ const enableCam = async () => {
     });
   } catch (error) {
     console.error("Error enabling webcam:", error);
+  }
+};
+
+// handling the data received from the tablet peer
+const handlePeerData = (data) => {
+  try {
+    const parsedData = JSON.parse(data);
+    switch (parsedData.type) {
+      case "drawingData":
+        faceDrawings.push(parsedData.data);
+        break;
+      case "toolChange":
+        const selectedTool = tools[parsedData.tool];
+        if (selectedTool) {
+          currentTool = selectedTool;
+          currentDrawingColor = selectedTool.color;
+          currentStrokeWidth = selectedTool.strokeWidth;
+          console.log("Tool changed to:", currentTool);
+        } else {
+          console.warn("Received unknown tool:", parsedData.tool);
+        }
+        break;
+      case "touchstart":
+        handleTouchStart(parsedData.x, parsedData.y);
+        break;
+      case "touchmove":
+        handleTouchMove(parsedData.x, parsedData.y);
+        break;
+      case "touchend":
+        handleTouchEnd();
+        break;
+      default:
+        console.warn("Unknown data type received:", parsedData.type);
+    }
+  } catch (e) {
+    console.error("Error parsing received data:", e);
   }
 };
 
@@ -746,86 +739,77 @@ initApp();
 // Optional: UI Controls
 // ---------------------------
 
-// Example: Color picker or buttons to change drawing color
-const colorButtons = document.querySelectorAll(".color-button");
-colorButtons.forEach((button, index) => {
-  button.style.backgroundColor = colors[index];
-  button.addEventListener("click", () => {
-    currentDrawingColor = colors[index];
-    // Optionally, send color change via WebRTC
-    if (peer && peer.connected) {
-      peer.send(
-        JSON.stringify({
-          type: "colorChange",
-          color: currentDrawingColor,
-        }),
-      );
-    }
-  });
-});
+// the following code was for testing on the hologram page to set up the drawing onto segmentation
+//it will just rest here for now
+// ---------------------------
 
-// Optional: Clear Canvas Button
-const clearCanvasButton = document.querySelector(".clear-canvas");
-if (clearCanvasButton) {
-  clearCanvasButton.addEventListener("click", () => {
-    faceDrawings = [];
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    // Optionally, notify the peer to clear their canvas
-    if (peer && peer.connected) {
-      peer.send(
-        JSON.stringify({
-          type: "clearCanvas",
-        }),
-      );
-    }
-  });
-}
-
-const handlePeerData = (data) => {
-  try {
-    const parsedData = JSON.parse(data);
-    switch (parsedData.type) {
-      case "drawingData":
-        faceDrawings.push(parsedData.data);
-        break;
-      case "toolChange":
-        const selectedTool = tools[parsedData.tool];
-        if (selectedTool) {
-          currentTool = selectedTool;
-          currentDrawingColor = selectedTool.color;
-          currentStrokeWidth = selectedTool.strokeWidth;
-          console.log("Tool changed to:", currentTool);
-        } else {
-          console.warn("Received unknown tool:", parsedData.tool);
-        }
-        break;
-      case "touchstart":
-        handleTouchStart(parsedData.x, parsedData.y);
-        break;
-      case "touchmove":
-        handleTouchMove(parsedData.x, parsedData.y);
-        break;
-      case "touchend":
-        handleTouchEnd();
-        break;
-      default:
-        console.warn("Unknown data type received:", parsedData.type);
-    }
-  } catch (e) {
-    console.error("Error parsing received data:", e);
-  }
-};
-
-// Handle incoming drawing data from peers
-// socket.on("drawingData", (drawing) => {
-//   faceDrawings.push(drawing);
+// canvasElement.addEventListener("mousedown", (e) => {
+//   isDrawing = true;
+//   drawnPoints = [];
 // });
 
-// socket.on("colorChange", (color) => {
-//   currentDrawingColor = color;
+// canvasElement.addEventListener("mousemove", (e) => {
+//   if (!isDrawing || !currentFaceLandmarks) return;
+
+//   const rect = canvasElement.getBoundingClientRect();
+//   const normalizedX = (e.clientX - rect.left) / rect.width;
+//   const normalizedY = (e.clientY - rect.top) / rect.height;
+
+//   drawnPoints.push({ x: normalizedX, y: normalizedY });
 // });
 
-// socket.on("clearCanvas", () => {
-//   faceDrawings = [];
-//   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+// canvasElement.addEventListener("mouseup", () => {
+//   isDrawing = false;
+//   if (drawnPoints.length && currentFaceLandmarks) {
+//     // Capture the reference frame at the moment of drawing
+//     const leftIrisCenter = computeIrisCenter(currentFaceLandmarks, 468); // Left iris landmarks
+//     const rightIrisCenter = computeIrisCenter(currentFaceLandmarks, 473); // Right iris landmarks
+//     const midpoint = {
+//       x: (leftIrisCenter.x + rightIrisCenter.x) / 2,
+//       y: (leftIrisCenter.y + rightIrisCenter.y) / 2,
+//     };
+//     const { angle, distance } = computeAngleAndScale(
+//       leftIrisCenter,
+//       rightIrisCenter,
+//     );
+
+//     // Store the drawing in canonical coordinates relative to the reference frame
+//     const canonicalPoints = drawnPoints.map((p) => {
+//       // Translate so that midpoint is the origin
+//       let tx = p.x - midpoint.x;
+//       let ty = p.y - midpoint.y;
+
+//       // Rotate to align with the reference frame's x-axis
+//       const cosA = Math.cos(-angle);
+//       const sinA = Math.sin(-angle);
+//       const rx = tx * cosA - ty * sinA;
+//       const ry = tx * sinA + ty * cosA;
+
+//       // Scale based on the reference distance
+//       const sx = rx / distance;
+//       const sy = ry / distance;
+
+//       return { x: sx, y: sy };
+//     });
+
+//     // Store the drawing with its reference frame
+//     faceDrawings.push({
+//       canonicalPoints, // Points in canonical space
+//       refMidpoint: midpoint, // Reference midpoint
+//       refAngle: angle, // Reference angle
+//       refDistance: distance, // Reference scale
+//       color: currentDrawingColor,
+//     });
+
+//     // Send drawing data via WebRTC
+//     if (peer && peer.connected) {
+//       peer.send(
+//         JSON.stringify({
+//           type: "drawingData",
+//           data: faceDrawings[faceDrawings.length - 1],
+//         }),
+//       );
+//     }
+//   }
+//   drawnPoints = [];
 // });

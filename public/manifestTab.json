@@ -3,7 +3,7 @@
   "short_name": "FFL",
   "description": "Live face filter: facepainting fun with your friends",
   "start_url": "/tab",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
