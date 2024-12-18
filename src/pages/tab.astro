@@ -19,8 +19,19 @@ import lottie from "lottie-web";
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tablet Interface</title>
   </head>
-
+  
   <body class="tablet--body">
+    <div class="lower__opacity">
+      <div class="inactivity__wrapper">
+      <p class="inactivity__question">Ben je er nog?</p>
+      <div class="inactivity--button__container">
+        <button class="inactivity__button inactivity__button--nee button_red">Nee</button>
+        <button class="inactivity__button inactivity__button--ja button_green">Ja</button>
+      </div>
+    </div>
+    <img class="inactive__mark" src="./assets/questionmark.svg" alt="?" >
+    <img class="inactive__worm" src="./assets/inactiveWorm.svg" alt="worm" >
+    </div>
     <nav class="navbar none">
       <div class="navbar--button__empty-left none">
         <img src="/assets/button_empty.png" alt="empty button" />
@@ -54,8 +65,11 @@ import lottie from "lottie-web";
         <img src="/assets/button_empty.png" alt="empty button" />
       </div>
     </nav>
-    <p class="suggestion none">je kan van hem/haar bijvoorbeeld je <span class="purple--text">lievelingsdier</span> maken!</p>
     
+    
+
+    <p class="suggestion none">je kan van hem/haar bijvoorbeeld je <span class="purple--text noTypo">lievelingsdier</span> maken!</p>
+
     <div class="page">
       <div class="page start">
         <h1 class="title above">
@@ -82,22 +96,30 @@ import lottie from "lottie-web";
               >camera</span
             > staan.
           </p>
+            <div id="super-animation" class="lottieSuper"></div>
 
           <p class="instruction_text instruction2 none">
             <span class="cursive--text purple--text">Super!</span>
           </p>
+            <div id="super-animation" class="lottieFingerPoint"></div>
+            <div id="pinksnake-animation" class="lottiePinkSnake"></div>
+            <!-- <div id="greendragon-animation" class="lottieGreenDragon"></div> -->
 
           <p class="instruction_text instruction3 none">
             <span class="cursive--text pink--text">Teken </span>iets op het
             gezicht.
           </p>
+              <div id="super-animation2" class="lottieSuper2"></div>
+            <div id="super-animation3" class="lottieSuper3"></div>
+            <div id="super-animation4" class="lottieSuper4"></div>
+            <div id="super-animation5" class="lottieSuper5"></div>
 
           <p class="instruction_text instruction4 none">
             <span class="cursive--text purple--text">Perfect! </span>Ga zo door.
           </p>
           <img class="instruction_check" src="/assets/button_next.svg" alt="" />
         </div>
-
+          <div id="thumbworm-animation" class="lottieThumbWorm"></div>
         <div class="tools none">
           <div class="toolball pencilBig"></div>
           <button class="tool" data-tool="brushYellow">
@@ -133,13 +155,13 @@ import lottie from "lottie-web";
           <canvas class="face--canvas"></canvas>
           <div class="option--text__container">
             <button class="option--text__delete button_red">
-              <img src="/assets/cancel.svg" alt="" />
-              Verwijderen
+              Niet opslaan
+              <!-- <img src="/assets/cancel.svg" alt="" /> -->
             </button>
             <button class="option--text__save button_green">
-              <img src="/assets/check.svg" alt="" />
-              Opslaan</button
-            >
+              Opslaan
+              <!-- <img src="/assets/check.svg" alt="" /> -->
+            </button>
           </div>
         </div>
 

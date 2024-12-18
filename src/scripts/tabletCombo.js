@@ -54,7 +54,11 @@ const instructionSteps = [
   },
 ];
 
+let inactivityTime = 0;
+document.onclick = () => { inactivityTime = 0; };
+
 let selectedTool = "pencilBig";
+
 
 const toolButtons = document.querySelectorAll(".tool");
 toolButtons.forEach((button) => {
@@ -107,6 +111,49 @@ const nextInstructionStep = () => {
   if (currentInstructionStep < instructionSteps.length - 1) {
     currentInstructionStep++;
     renderInstructionStep();
+    if (currentInstructionStep === 1) {
+      lottie.loadAnimation({
+        container: document.querySelector(".lottieSuper"),
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: "./assets/ThumbsUp.json",
+      });
+    }
+    if (currentInstructionStep === 2) {
+      lottie.loadAnimation({
+        container: document.querySelector(".lottieFingerPoint"),
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: "./assets/FingerPoint.json",
+      });
+      lottie.loadAnimation({
+        container: document.querySelector(".lottiePinkSnake"),
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: "./assets/PinkSnake.json",
+      });
+    }
+    if (currentInstructionStep === 3) {
+      for (let i = 2; i < 6; i++) {
+      lottie.loadAnimation({
+        container: document.querySelector(`.lottieSuper${i}`),
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: "./assets/ThumbsUp.json",
+      });
+    }
+    }
+      // lottie.loadAnimation({
+      //   container: document.querySelector(".lottieFingerPoint"),
+      //   renderer: "svg",
+      //   loop: false,
+      //   autoplay: true,
+      //   path: "./assets/GreenDragon.json",
+      // });
 
     // Optionally, notify peer about instruction step change
     if (peer && peer.connected) {
@@ -181,15 +228,50 @@ const backToStart = () => {
     );
   }
 };
+const inactivityChecker = () => {
+  const inactivityTimer = setInterval(() => {
+    inactivityTime++;
+    if (inactivityTime === 15) {
+      document.querySelector(".inactivity__wrapper").classList.add("visible");
+      document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+      document.querySelector(".lower__opacity").style.pointerEvents = "all";
+      document.querySelector(".inactive__worm").classList.add("wormIn");
+      document.querySelector(".inactive__mark").classList.add("markIn");
+      clearInterval(inactivityTimer);
+    }
+    // console.log(inactivityTime);
+  }, 1000);
+}
 
-document.querySelector(".start--button").addEventListener("click", function () {
+document.querySelector(".inactivity__button--ja").addEventListener("click", () => {
+  document.querySelector(".inactivity__wrapper").classList.remove("visible");
+  document.querySelector(".lower__opacity").style.pointerEvents = "none";
+  document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0)";
+  document.querySelector(".inactive__worm").classList.remove("wormIn");
+  document.querySelector(".inactive__mark").classList.remove("markIn");
+})
+document.querySelector(".inactivity__button--nee").addEventListener("click", () => {
+  document.querySelector(".inactivity__wrapper").classList.remove("visible");
+  document.querySelector(".lower__opacity").style.pointerEvents = "none";
+  document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0)";
+  document.querySelector(".inactive__worm").classList.remove("wormIn");
+  document.querySelector(".inactive__mark").classList.remove("markIn");
+  document.querySelector(".start").classList.remove("none");
+  document.querySelector(".experience").classList.add("none");
+  document.querySelector(".navbar").classList.add("none");
+})
+
+
+document.querySelector(".start--button").addEventListener("click", () => {
   startExperience();
+  inactivityChecker();
+  
 });
 
 // Go to options page
 document
   .querySelector(".navbar--button__next")
-  .addEventListener("click", function () {
+  .addEventListener("click", () => {
     // document.querySelector(".application").classList.add("none");
     document.querySelector(".option").classList.remove("none");
     document.querySelector(".tools").classList.add("none");
@@ -201,6 +283,23 @@ document
     document
       .querySelector(".navbar--button__empty-right")
       .classList.remove("none");
+  });
+
+  // back to drawing page from options
+ document
+  .querySelector(".navbar--button__back-drawing")
+  .addEventListener("click", () => {
+    // document.querySelector(".application").classList.add("none");
+    document.querySelector(".option").classList.add("none");
+    document.querySelector(".tools").classList.remove("none");
+    document.querySelector(".navbar--button__undo").classList.remove("none");
+    document.querySelector(".navbar--button__next").classList.remove("none");
+    document
+      .querySelector(".navbar--button__back-drawing")
+      .classList.add("none");
+    document
+      .querySelector(".navbar--button__empty-right")
+      .classList.add("none");
   });
 
 // Go to delete page
@@ -356,6 +455,7 @@ lottie.loadAnimation({
   path: "./assets/idle3.json",
 });
 
+
 let isTouching = false;
 
 function getNormalizedCoordinates(touch) {
@@ -373,6 +473,32 @@ faceCanvas.addEventListener("touchstart", (e) => {
   const { x, y } = getNormalizedCoordinates(touch);
 
   sendTouchData({ type: "touchstart", x, y });
+
+  const suggestion = document.querySelector(".suggestion");
+  let suggestionTime = 0;
+  const timerSuggestion = setInterval(() => {
+    suggestionTime++;
+    if (suggestionTime === 3) {
+      suggestion.classList.add("vanish");
+      clearInterval(timerSuggestion);
+    }
+    // console.log(suggestionTime);
+  }, 1000);
+  let timeThumbsUp = 0;
+  const timerThumbsUp = setInterval(() => {
+    timeThumbsUp++;
+    if (timeThumbsUp === 10) {
+      lottie.loadAnimation({
+        container: document.querySelector(".lottieThumbWorm"),
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: "./assets/ThumbsUpWorm.json",
+      });
+      clearInterval(timerThumbsUp);
+    }
+  }, 1000);
+
 });
 
 faceCanvas.addEventListener("touchmove", (e) => {
