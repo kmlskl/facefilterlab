@@ -49,7 +49,7 @@ const instructionSteps = [
   },
   {
     name: "tools",
-    show: ["tools"],
+    show: ["tools", "navbar--button__undo", "navbar--button__next","suggestion"],
     hide: ["instructions"],
   },
 ];
@@ -63,8 +63,14 @@ toolButtons.forEach((button) => {
       btn.classList.remove("selected");
     });
     button.classList.add("selected");
+
     selectedTool = button.dataset.tool;
     console.log("Selected tool:", selectedTool);
+    
+    let toolballPos = document.querySelector(".toolball")
+    toolballPos.classList.remove("brushYellow", "brushOrange", "brushRed", "brushGreen", "brushPurple", "brushPink" ,"pencilSmall", "pencilBig", "eraser");
+    toolballPos.classList.add(selectedTool);
+    
 
     // Optionally, send selected tool via WebRTC
     if (peer && peer.connected) {
@@ -184,8 +190,9 @@ document.querySelector(".start--button").addEventListener("click", function () {
 document
   .querySelector(".navbar--button__next")
   .addEventListener("click", function () {
-    document.querySelector(".application").classList.add("none");
+    // document.querySelector(".application").classList.add("none");
     document.querySelector(".option").classList.remove("none");
+    document.querySelector(".tools").classList.add("none");
     document.querySelector(".navbar--button__undo").classList.add("none");
     document.querySelector(".navbar--button__next").classList.add("none");
     document

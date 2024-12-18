@@ -8,6 +8,9 @@ const localIP = getLocalIPAddress();
 const serverUrl = `https://${localIP}:2000`;
 
 export default defineConfig({
+  devToolbar: {
+    enabled: false
+  },
   vite: {
     define: {
       LOCAL_IP: JSON.stringify(localIP),

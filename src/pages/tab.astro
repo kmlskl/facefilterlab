@@ -37,7 +37,7 @@ import lottie from "lottie-web";
         <img src="/assets/button_back.svg" alt="icon for back button" />
       </button>
 
-      <button class="navbar--button__undo">
+      <button class="navbar--button__undo none">
         <img src="/assets/button_undo.svg" alt="icon for undo button" />
       </button>
 
@@ -45,16 +45,17 @@ import lottie from "lottie-web";
         The<br />
         <span class="fat--title">Face Filter Lab</span>
       </h2>
-
-      <button class="navbar--button__next">
+      
+      <button class="navbar--button__next none">
         <img src="/assets/button_next.svg" alt="icon for next button" />
       </button>
-
+      
       <div class="navbar--button__empty-right none">
         <img src="/assets/button_empty.png" alt="empty button" />
       </div>
     </nav>
-
+    <p class="suggestion none">je kan van hem/haar bijvoorbeeld je <span class="purple--text">lievelingsdier</span> maken!</p>
+    
     <div class="page">
       <div class="page start">
         <h1 class="title above">
@@ -98,32 +99,33 @@ import lottie from "lottie-web";
         </div>
 
         <div class="tools none">
+          <div class="toolball pencilBig"></div>
           <button class="tool" data-tool="brushYellow">
-            <img src="/assets/brush_yellow.svg" alt="" width="120px" />
+            <img src="/assets/brush_yellow.svg" alt="" width="150px" />
           </button>
           <button class="tool" data-tool="brushOrange">
-            <img src="/assets/brush_orange.svg" alt="" width="120px" />
-          </button>
-          <button class="tool" data-tool="brushPink">
-            <img src="/assets/brush_pink.svg" alt="" width="120px" />
-          </button>
-          <button class="tool" data-tool="brushPurple">
-            <img src="/assets/brush_purple.svg" alt="" width="120px" />
+            <img src="/assets/brush_orange.svg" alt="" width="150px" />
           </button>
           <button class="tool" data-tool="brushRed">
-            <img src="/assets/brush_red.svg" alt="" width="120px" />
+            <img src="/assets/brush_red.svg" alt="" width="150px" />
           </button>
           <button class="tool" data-tool="brushGreen">
-            <img src="/assets/brush_green.svg" alt="" width="120px" />
+            <img src="/assets/brush_green.svg" alt="" width="150px" />
+          </button>
+          <button class="tool" data-tool="brushPurple">
+            <img src="/assets/brush_purple.svg" alt="" width="150px" />
+          </button>
+          <button class="tool" data-tool="brushPink">
+            <img src="/assets/brush_pink.svg" alt="" width="150px" />
           </button>
           <button class="tool selected" data-tool="pencilBig">
-            <img src="/assets/pencil_big.svg" alt="" width="40px" />
+            <img src="/assets/pencil_big.svg" alt="" width="60px" />
           </button>
           <button class="tool" data-tool="pencilSmall">
-            <img src="/assets/pencil_small.svg" alt="" width="32px" />
+            <img src="/assets/pencil_small.svg" alt="" width="40px" />
           </button>
           <button class="tool" data-tool="eraser">
-            <img src="/assets/eraser.svg" alt="" width="80px" />
+            <img src="/assets/eraser.svg" alt="" width="100px" />
           </button>
         </div>
 

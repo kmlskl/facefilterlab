@@ -226,20 +226,6 @@ const drawOnCanvas = (points, ctx, tool) => {
   ctx.restore(); // Restore to the original state
 };
 
-// erase drawing from facedrawings erray
-const eraseDrawing = () => {
-  // Create a copy of the current faceDrawings array
-  const newFaceDrawings = [...faceDrawings];
-
-  // Remove the last drawing
-  if (newFaceDrawings.length > 0) {
-    newFaceDrawings.pop();
-  }
-
-  // Return the updated array
-  faceDrawings = newFaceDrawings;
-};
-
 // Render pinned drawings on face
 const renderPinnedDrawings = (allPinnedDrawings, landmarks, ctx) => {
   if (allPinnedDrawings.length === 0) return;
@@ -724,16 +710,15 @@ const handlePeerData = (data) => {
         const selectedTool = tools[parsedData.tool];
         if (selectedTool) {
           currentTool = selectedTool;
-          if (currentTool.mode === "erase") {
-            eraseDrawing();
-          }
+          currentDrawingColor = selectedTool.color;
+          currentStrokeWidth = selectedTool.strokeWidth;
+          console.log("Tool changed to:", currentTool);
         } else {
           console.warn("Received unknown tool:", parsedData.tool);
         }
         break;
       case "touchstart":
         handleTouchStart(parsedData.x, parsedData.y);
-
         break;
       case "touchmove":
         handleTouchMove(parsedData.x, parsedData.y);
