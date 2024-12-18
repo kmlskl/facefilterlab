@@ -16,41 +16,70 @@ import lottie from "lottie-web";
   <head>
     <meta charset="utf-8" />
     <link rel="manifest" href="/manifestTab.json" />
-    <meta name="viewport" content="width=device-width, inital-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Tablet Interface</title>
   </head>
-  
+
   <body class="tablet--body">
     <div class="lower__opacity">
       <div class="inactivity__wrapper">
-      <p class="inactivity__question">Ben je er nog?</p>
-      <div class="inactivity--button__container">
-        <button class="inactivity__button inactivity__button--nee button_red">Nee</button>
-        <button class="inactivity__button inactivity__button--ja button_green">Ja</button>
+        <p class="inactivity__question">Ben je er nog?</p>
+        <div class="inactivity--button__container">
+          <button class="inactivity__button inactivity__button--nee button_red"
+            >Nee</button
+          >
+          <button class="inactivity__button inactivity__button--ja button_green"
+            >Ja</button
+          >
+        </div>
       </div>
-    </div>
-    <img class="inactive__mark" src="./assets/questionmark.svg" alt="?" >
-    <img class="inactive__worm" src="./assets/inactiveWorm.svg" alt="worm" >
+      <img class="inactive__mark" src="./assets/questionmark.svg" alt="?" />
+      <img class="inactive__worm" src="./assets/inactiveWorm.svg" alt="worm" />
     </div>
 
     <div class="lower__opacity2">
       <div class="twoPeople__wrapper">
-      <p class="inactivity__question">Niet meer dan <span class="purple--text">1 persoon</span><br/>voor de camera!</p>
-      <div class="worm__wrapper">
-        <img class="wormCamera wormCameraLeft" src="./assets/wormLeft.svg" alt="worm">
-        <img class="wormCamera wormCameraRight" src="./assets/wormRight.svg" alt="worm">
+        <p class="inactivity__question">
+          Niet meer dan <span class="purple--text">1 persoon</span><br />voor de
+          camera!
+        </p>
+        <div class="worm__wrapper">
+          <img
+            class="wormCamera wormCameraLeft"
+            src="./assets/wormLeft.svg"
+            alt="worm"
+          />
+          <img
+            class="wormCamera wormCameraRight"
+            src="./assets/wormRight.svg"
+            alt="worm"
+          />
+        </div>
       </div>
     </div>
-  </div>
     <div class="lower__opacity3">
       <div class="noPeople__wrapper">
-      <p class="inactivity__question noPeople__question">Waar ben je naartoe?<br/><span class="red--text">kom terug!</span><br/></p>
-      <div class="wormSlide__wrapper">
-        <img class="wormSlide wormSlideLeft" src="./assets/wormSlideLeft.svg" alt="worm">
-        <img class="wormSlide wormSlideRight" src="./assets/wormSlideRight.svg" alt="worm">
+        <p class="inactivity__question noPeople__question">
+          Waar ben je naartoe?<br /><span class="red--text">kom terug!</span><br
+          />
+        </p>
+        <div class="wormSlide__wrapper">
+          <img
+            class="wormSlide wormSlideLeft"
+            src="./assets/wormSlideLeft.svg"
+            alt="worm"
+          />
+          <img
+            class="wormSlide wormSlideRight"
+            src="./assets/wormSlideRight.svg"
+            alt="worm"
+          />
+        </div>
       </div>
     </div>
-  </div>
 
     <nav class="navbar none">
       <div class="navbar--button__empty-left none">
@@ -68,7 +97,7 @@ import lottie from "lottie-web";
         <img src="/assets/button_back.svg" alt="icon for back button" />
       </button>
 
-      <button class="navbar--button__undo none">
+      <button class="navbar--button__undo none hidden">
         <img src="/assets/button_undo.svg" alt="icon for undo button" />
       </button>
 
@@ -77,23 +106,34 @@ import lottie from "lottie-web";
         <span class="fat--title">Face Filter Lab</span>
       </h2>
 
-      <h2 class="title__question title__question1 none">Blij met je<br><span class="purple--text">resultaat?</span></h2>
-      <h2 class="title__question title__question2 none">Wil je je creatie <span class="pink--text">opslaan?</span></h2>
-      <h2 class="title__question title__question3 none">Wil je je creatie <span class="pink--text">niet opslaan?</span></h2>
-      <h2 class="title__question title__question4 none"><span class="cursive--text red--text">Bedankt</span> voor het spelen!</h2>
+      <h2 class="title__question title__question1 none">
+        Blij met je<br /><span class="purple--text">resultaat?</span>
+      </h2>
+      <h2 class="title__question title__question2 none">
+        Wil je je creatie <span class="pink--text">opslaan?</span>
+      </h2>
+      <h2 class="title__question title__question3 none">
+        Wil je je creatie <span class="pink--text">niet opslaan?</span>
+      </h2>
+      <h2 class="title__question title__question4 none">
+        <span class="cursive--text red--text">Bedankt</span> voor het spelen!
+      </h2>
 
       <button class="navbar--button__next none">
         <img src="/assets/button_next.svg" alt="icon for next button" />
       </button>
-      
+
       <div class="navbar--button__empty-right none">
         <img src="/assets/button_empty.png" alt="empty button" />
       </div>
     </nav>
-    
-    
-      <div id="done-animation" class="lottieAfterDrawing"></div>
-    <p class="suggestion none">Je kan bijvoorbeeld je <span class="purple--text noTypo">lievelingsdier</span> maken!</p>
+
+    <div id="done-animation" class="lottieAfterDrawing"></div>
+    <p class="suggestion none">
+      Je kan bijvoorbeeld je <span class="purple--text noTypo"
+        >lievelingsdier</span
+      > maken!
+    </p>
 
     <div class="page">
       <div class="page start">
@@ -121,30 +161,30 @@ import lottie from "lottie-web";
               >camera</span
             > staan.
           </p>
-            <div id="super-animation" class="lottieSuper"></div>
+          <div id="super-animation" class="lottieSuper"></div>
 
           <p class="instruction_text instruction2 none">
             <span class="cursive--text purple--text">Super!</span>
           </p>
-            <div id="super-animation" class="lottieFingerPoint"></div>
-            <div id="pinksnake-animation" class="lottiePinkSnake"></div>
-            <!-- <div id="greendragon-animation" class="lottieGreenDragon"></div> -->
+          <div id="super-animation" class="lottieFingerPoint"></div>
+          <div id="pinksnake-animation" class="lottiePinkSnake"></div>
+          <!-- <div id="greendragon-animation" class="lottieGreenDragon"></div> -->
 
           <p class="instruction_text instruction3 none">
             <span class="cursive--text pink--text">Teken </span>iets op het
             gezicht.
           </p>
-              <div id="super-animation2" class="lottieSuper2"></div>
-            <div id="super-animation3" class="lottieSuper3"></div>
-            <div id="super-animation4" class="lottieSuper4"></div>
-            <div id="super-animation5" class="lottieSuper5"></div>
+          <div id="super-animation2" class="lottieSuper2"></div>
+          <div id="super-animation3" class="lottieSuper3"></div>
+          <div id="super-animation4" class="lottieSuper4"></div>
+          <div id="super-animation5" class="lottieSuper5"></div>
 
           <p class="instruction_text instruction4 none">
             <span class="cursive--text purple--text">Perfect! </span>Ga zo door.
           </p>
           <img class="instruction_check" src="/assets/button_next.svg" alt="" />
         </div>
-          <div id="thumbworm-animation" class="lottieThumbWorm"></div>
+        <div id="thumbworm-animation" class="lottieThumbWorm"></div>
         <div class="tools none">
           <div class="toolball pencilBig"></div>
           <button class="tool" data-tool="brushYellow">
@@ -171,9 +211,16 @@ import lottie from "lottie-web";
           <button class="tool" data-tool="pencilSmall">
             <img src="/assets/pencil_small.svg" alt="" width="40px" />
           </button>
-          <button class="tool" data-tool="eraser">
+          <div class="tool tool__empty"></div>
+          <img
+            class="undo__button"
+            src="/assets/button_undoDraw.svg"
+            width="65px"
+            alt="undobutton"
+          />
+          <!-- <button class="tool" data-tool="eraser">
             <img src="/assets/eraser.svg" alt="" width="100px" />
-          </button>
+          </button> -->
         </div>
 
         <div class="page option none">
@@ -192,36 +239,53 @@ import lottie from "lottie-web";
 
         <div class="page__save save__page none">
           <p class="description__confirmation">
-            Haal je ouder(s) erbij! vraag ze of je deze foto mag opslaan! Deze foto kan je terugvinden via een Google-Drive link op het einde van het festival.
+            Haal je ouder(s) erbij! vraag ze of je deze foto mag opslaan! Deze
+            foto kan je terugvinden via een Google-Drive link op het einde van
+            het festival.
           </p>
           <div class="option--text__container option--text__container--save">
             <button class="save--text__back button_red">Terug</button>
             <button class="save--text__save button_green">Opslaan</button>
           </div>
-          <img class="saveWorm saveWormAnimate" src="./assets/saveWorm.svg" alt="worm">
+          <img
+            class="saveWorm saveWormAnimate"
+            src="./assets/saveWorm.svg"
+            alt="worm"
+          />
         </div>
         <div class="page__save delete__page none">
-            <p class="description__confirmation">
-              Hierna kan je nog een nieuwe creatie maken, maar deze is dan voor altijd weg!
-            </p>
-            <div class="option--text__container option--text__container--save">
-              <button class="delete--text__back button_green">Terug</button>
-              <button class="delete--text__delete button_red">Niet opslaan</button>
-            </div>
-            <img class="saveWorm deleteWormAnimate" src="./assets/deleteWorm.svg" alt="worm">
+          <p class="description__confirmation">
+            Hierna kan je nog een nieuwe creatie maken, maar deze is dan voor
+            altijd weg!
+          </p>
+          <div class="option--text__container option--text__container--save">
+            <button class="delete--text__back button_green">Terug</button>
+            <button class="delete--text__delete button_red">Niet opslaan</button
+            >
+          </div>
+          <img
+            class="saveWorm deleteWormAnimate"
+            src="./assets/deleteWorm.svg"
+            alt="worm"
+          />
         </div>
 
         <div class="page final__page none">
-            <div id="explosionfinal-animation" class="lottieExplosionFinal"></div>
+          <div id="explosionfinal-animation" class="lottieExplosionFinal"></div>
           <p class="description__confirmation">
-            We hopen dat het is gelukt!<br /> Je kan zeker nog een coole filter maken, maar laat je vriendjes of anderen ook eens aan de beurt!
+            We hopen dat het is gelukt!<br /> Je kan zeker nog een coole filter maken,
+            maar laat je vriendjes of anderen ook eens aan de beurt!
           </p>
           <div class="final--container">
             <button class="final--text button_green">Nog eens!</button>
           </div>
           <div class="hand__wrapper">
-            <img class="hand handLeft" src="./assets/handLeft.svg" alt="hand">
-            <img class="hand handRight" src="./assets/handRight.svg" alt="hand">
+            <img class="hand handLeft" src="./assets/handLeft.svg" alt="hand" />
+            <img
+              class="hand handRight"
+              src="./assets/handRight.svg"
+              alt="hand"
+            />
           </div>
         </div>
       </div>

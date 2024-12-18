@@ -15,6 +15,10 @@ let animationLoadedAfterDrawing = false;
 let animationLoadedThumbsUpWorm = false;
 let animationLoadedExplosionFinal = false;
 
+let isFaceInFrame = false;
+let isDrawingStarted = false;
+let isTouching = false;
+
 const servers = {
   iceServers: [
     {
@@ -52,16 +56,34 @@ const instructionSteps = [
   },
   {
     name: "tools",
-    show: ["tools", "navbar--button__undo", "navbar--button__next","suggestion"],
+    show: ["tools", "navbar--button__next", "suggestion"],
     hide: ["instructions"],
   },
 ];
 
-let inactivityTime = 0;
-// document.onclick = () => { inactivityTime = 0; };
-document.addEventListener("touchstart", () => { inactivityTime = 0; })
-let selectedTool = "pencilBig";
+let undoLastDrawButton = document.querySelector(".undo__button");
 
+undoLastDrawButton.addEventListener("click", () => {
+  peer.send(
+    JSON.stringify({
+      type: "undoLastDraw",
+    }),
+  );
+});
+
+let inactivityTime = 0;
+let experienceActive = false;
+let inactivityTimerId = null;
+
+// document.onclick = () => { inactivityTime = 0; };
+document.addEventListener("touchstart", () => {
+  if (experienceActive) {
+    inactivityTime = 0;
+    inactivityChecker();
+  }
+});
+
+let selectedTool = "pencilBig";
 
 const toolButtons = document.querySelectorAll(".tool");
 toolButtons.forEach((button) => {
@@ -73,11 +95,20 @@ toolButtons.forEach((button) => {
 
     selectedTool = button.dataset.tool;
     console.log("Selected tool:", selectedTool);
-    
-    let toolballPos = document.querySelector(".toolball")
-    toolballPos.classList.remove("brushYellow", "brushOrange", "brushRed", "brushGreen", "brushPurple", "brushPink" ,"pencilSmall", "pencilBig", "eraser");
+
+    let toolballPos = document.querySelector(".toolball");
+    toolballPos.classList.remove(
+      "brushYellow",
+      "brushOrange",
+      "brushRed",
+      "brushGreen",
+      "brushPurple",
+      "brushPink",
+      "pencilSmall",
+      "pencilBig",
+      "eraser",
+    );
     toolballPos.classList.add(selectedTool);
-    
 
     // Optionally, send selected tool via WebRTC
     if (peer && peer.connected) {
@@ -111,10 +142,15 @@ const renderInstructionStep = () => {
 };
 
 const nextInstructionStep = () => {
-  if (currentInstructionStep < instructionSteps.length - 1) {
-    currentInstructionStep++;
-    renderInstructionStep();
-    if (currentInstructionStep === 1) {
+  // For other steps, simply increment and render
+  currentInstructionStep++;
+  renderInstructionStep();
+  performStepActions(currentInstructionStep);
+};
+
+const performStepActions = (step) => {
+  switch (step) {
+    case 1:
       lottie.loadAnimation({
         container: document.querySelector(".lottieSuper"),
         renderer: "svg",
@@ -122,8 +158,13 @@ const nextInstructionStep = () => {
         autoplay: true,
         path: "./assets/ThumbsUp.json",
       });
-    }
-    if (currentInstructionStep === 2) {
+      setTimeout(() => {
+        nextInstructionStep();
+      }, 3000);
+      break;
+    case 2:
+      isDrawingStarted = true;
+      console.log("Drawing started");
       lottie.loadAnimation({
         container: document.querySelector(".lottieFingerPoint"),
         renderer: "svg",
@@ -138,37 +179,56 @@ const nextInstructionStep = () => {
         autoplay: true,
         path: "./assets/PinkSnake.json",
       });
-    }
-    if (currentInstructionStep === 3) {
+      break;
+    case 3:
       document.querySelector(".lottieFingerPoint").classList.add("none");
       document.querySelector(".lottiePinkSnake").classList.add("none");
       for (let i = 2; i < 6; i++) {
-      lottie.loadAnimation({
-        container: document.querySelector(`.lottieSuper${i}`),
-        renderer: "svg",
-        loop: false,
-        autoplay: true,
-        path: "./assets/ThumbsUp.json",
-      });
-    }
-    }
-      // lottie.loadAnimation({
-      //   container: document.querySelector(".lottieFingerPoint"),
-      //   renderer: "svg",
-      //   loop: false,
-      //   autoplay: true,
-      //   path: "./assets/GreenDragon.json",
-      // });
+        lottie.loadAnimation({
+          container: document.querySelector(`.lottieSuper${i}`),
+          renderer: "svg",
+          loop: false,
+          autoplay: true,
+          path: "./assets/ThumbsUp.json",
+        });
+      }
+      setTimeout(() => {
+        nextInstructionStep();
+      }, 3000);
+      break;
+    case 4:
+      const suggestion = document.querySelector(".suggestion");
+      document.querySelector(".navbar--button__undo").classList.remove("none");
+      let suggestionTime = 0;
+      const timerSuggestion = setInterval(() => {
+        suggestionTime++;
+        if (suggestionTime === 3) {
+          suggestion.classList.add("vanish");
+          clearInterval(timerSuggestion);
+        }
+        // console.log(suggestionTime);
+      }, 1000);
 
-    // Optionally, notify peer about instruction step change
-    if (peer && peer.connected) {
-      peer.send(
-        JSON.stringify({
-          type: "instructionStep",
-          step: currentInstructionStep,
-        }),
-      );
-    }
+      let timeThumbsUp = 0;
+      const timerThumbsUp = setInterval(() => {
+        timeThumbsUp++;
+        if (timeThumbsUp === 6) {
+          if (!animationLoadedThumbsUpWorm && currentInstructionStep === 4) {
+            lottie.loadAnimation({
+              container: document.querySelector(".lottieThumbWorm"),
+              renderer: "svg",
+              loop: false,
+              autoplay: true,
+              path: "./assets/ThumbsUpWorm.json",
+            });
+            animationLoadedThumbsUpWorm = true;
+          }
+          clearInterval(timerThumbsUp);
+        }
+      }, 1000);
+    // ... handle other steps
+    default:
+      break;
   }
 };
 
@@ -195,17 +255,18 @@ document
     nextInstructionStep();
   });
 
-document
-  .querySelector(".navbar--button__undo")
-  .addEventListener("click", (event) => {
-    // prevInstructionStep();
-  });
+// document
+//   .querySelector(".navbar--button__undo")
+//   .addEventListener("click", (event) => {
+//     // prevInstructionStep();
+//   });
 
 const startExperience = () => {
   document.querySelector(".start").classList.add("none");
   document.querySelector(".experience").classList.remove("none");
   document.querySelector(".navbar").classList.remove("none");
 
+  experienceActive = true;
   // Optionally, notify peer that experience has started
   if (peer && peer.connected) {
     peer.send(
@@ -220,17 +281,30 @@ const startExperience = () => {
 // more than 2 people in camera function
 const twoPeopleCamera = () => {
   document.querySelector(".twoPeople__wrapper").classList.add("visible");
-  document.querySelector(".lower__opacity2").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+  document.querySelector(".lower__opacity2").style.backgroundColor =
+    "rgba(0, 0, 0, 0.3)";
   document.querySelector(".wormCameraRight").classList.add("wormRightMove");
-}
+};
 // no one in camera function
 const noPeopleCamera = () => {
   document.querySelector(".noPeople__wrapper").classList.add("visible");
-  document.querySelector(".lower__opacity3").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+  document.querySelector(".lower__opacity3").style.backgroundColor =
+    "rgba(0, 0, 0, 0.3)";
   document.querySelector(".wormSlideLeft").classList.add("wormslideLeftMove");
   document.querySelector(".wormSlideRight").classList.add("wormslideRightMove");
-}
+};
 
+const noPeopleCameraSolved = () => {
+  document.querySelector(".noPeople__wrapper").classList.remove("visible");
+  document.querySelector(".lower__opacity3").style.backgroundColor =
+    "rgba(0, 0, 0, 0)";
+  document
+    .querySelector(".wormSlideLeft")
+    .classList.remove("wormslideLeftMove");
+  document
+    .querySelector(".wormSlideRight")
+    .classList.remove("wormslideRightMove");
+};
 
 const backToStart = () => {
   document.querySelector(".start").classList.remove("none");
@@ -247,47 +321,69 @@ const backToStart = () => {
     );
   }
 };
+
+const inactivityPopup = (inactivityTimer) => {
+  document.querySelector(".navbar").classList.add("opacityBar");
+  document.querySelector(".inactivity__wrapper").classList.add("visible");
+  document.querySelector(".lower__opacity").style.backgroundColor =
+    "rgba(0, 0, 0, 0.3)";
+  document.querySelector(".lower__opacity").style.pointerEvents = "all";
+  document.querySelector(".inactive__worm").classList.add("wormIn");
+  document.querySelector(".inactive__mark").classList.add("markIn");
+  // clearInterval(inactivityTimer);
+};
+
 const inactivityChecker = () => {
-  const inactivityTimer = setInterval(() => {
+  // Clear any existing inactivity timer
+  if (inactivityTimerId !== null) {
+    clearInterval(inactivityTimerId);
+  }
+
+  // Reset inactivity time
+  inactivityTime = 0;
+
+  // Start a new inactivity timer
+  inactivityTimerId = setInterval(() => {
     inactivityTime++;
-    if (inactivityTime === 30) {
-      document.querySelector(".navbar").classList.add("opacityBar");
-      document.querySelector(".inactivity__wrapper").classList.add("visible");
-      document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
-      document.querySelector(".lower__opacity").style.pointerEvents = "all";
-      document.querySelector(".inactive__worm").classList.add("wormIn");
-      document.querySelector(".inactive__mark").classList.add("markIn");
-      clearInterval(inactivityTimer);
+    console.log("Inactivity Time:", inactivityTime);
+    console.log(`Inactivity Time: ${inactivityTime}s`);
+
+    if (inactivityTime === 90) {
+      inactivityPopup(); // Show popup at 10 seconds
     }
-    // console.log(inactivityTime);
+
+    if (inactivityTime >= 120) {
+      // Clear the inactivity timer before restarting
+      clearInterval(inactivityTimerId);
+      inactivityTimerId = null;
+
+      // Restart the experience
+      restartExperience();
+    }
   }, 1000);
-}
+};
 
-document.querySelector(".inactivity__button--ja").addEventListener("click", () => {
-  document.querySelector(".inactivity__wrapper").classList.remove("visible");
-  document.querySelector(".lower__opacity").style.pointerEvents = "none";
-  document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0)";
-  document.querySelector(".inactive__worm").classList.remove("wormIn");
-  document.querySelector(".inactive__mark").classList.remove("markIn");
-  document.querySelector(".navbar").classList.remove("opacityBar");
-  inactivityChecker();
-})
-document.querySelector(".inactivity__button--nee").addEventListener("click", () => {
-  document.querySelector(".inactivity__wrapper").classList.remove("visible");
-  document.querySelector(".lower__opacity").style.pointerEvents = "none";
-  document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0)";
-  document.querySelector(".inactive__worm").classList.remove("wormIn");
-  document.querySelector(".inactive__mark").classList.remove("markIn");
-  document.querySelector(".start").classList.remove("none");
-  document.querySelector(".experience").classList.add("none");
-  document.querySelector(".navbar").classList.add("none");
-})
-
+document
+  .querySelector(".inactivity__button--ja")
+  .addEventListener("click", () => {
+    document.querySelector(".inactivity__wrapper").classList.remove("visible");
+    document.querySelector(".lower__opacity").style.pointerEvents = "none";
+    document.querySelector(".lower__opacity").style.backgroundColor =
+      "rgba(0, 0, 0, 0)";
+    document.querySelector(".inactive__worm").classList.remove("wormIn");
+    document.querySelector(".inactive__mark").classList.remove("markIn");
+    document.querySelector(".navbar").classList.remove("opacityBar");
+    inactivityChecker();
+  });
+document
+  .querySelector(".inactivity__button--nee")
+  .addEventListener("click", () => {
+    restartExperience();
+  });
 
 document.querySelector(".start--button").addEventListener("click", () => {
   startExperience();
   inactivityChecker();
-  
 });
 
 // Go to options page
@@ -295,7 +391,9 @@ document
   .querySelector(".navbar--button__next")
   .addEventListener("click", () => {
     // document.querySelector(".application").classList.add("none");
-    document.querySelector(".navbar--button__empty-right").classList.remove("none");
+    document
+      .querySelector(".navbar--button__empty-right")
+      .classList.remove("none");
     document.querySelector(".option").classList.remove("none");
     document.querySelector(".tools").classList.add("none");
     document.querySelector(".navbar--button__undo").classList.add("none");
@@ -304,15 +402,15 @@ document
     document.querySelector(".nav__title").classList.add("none");
     document.querySelector(".suggestion").classList.add("none");
     document.querySelector(".lottieAfterDrawing").classList.remove("none");
-    if(!animationLoadedAfterDrawing){
-    lottie.loadAnimation({
-      container: document.querySelector(".lottieAfterDrawing"),
-      renderer: "svg",
-      loop: false,
-      autoplay: true,
-      path: "./assets/WormsDrawingComplete.json",
-    });
-    animationLoadedAfterDrawing = true;
+    if (!animationLoadedAfterDrawing) {
+      lottie.loadAnimation({
+        container: document.querySelector(".lottieAfterDrawing"),
+        renderer: "svg",
+        loop: false,
+        autoplay: true,
+        path: "./assets/WormsDrawingComplete.json",
+      });
+      animationLoadedAfterDrawing = true;
     }
     document
       .querySelector(".navbar--button__back-drawing")
@@ -322,27 +420,17 @@ document
       .classList.remove("none");
   });
 
-  // back to drawing page from options
- document
+// back to drawing page from options
+document
   .querySelector(".navbar--button__back-drawing")
   .addEventListener("click", () => {
-    // document.querySelector(".application").classList.add("none");
-    // document.querySelector(".option").classList.add("none");
-    // document.querySelector(".tools").classList.remove("none");
-    // document.querySelector(".navbar--button__undo").classList.remove("none");
-    // document.querySelector(".navbar--button__next").classList.remove("none");
-    // document
-    //   .querySelector(".navbar--button__back-drawing")
-    //   .classList.add("none");
-    // document
-    //   .querySelector(".navbar--button__empty-right")
-    //   .classList.add("none");
-
     document.querySelector(".option").classList.add("none");
-    document.querySelector(".navbar--button__empty-right").classList.add("none");
+    document
+      .querySelector(".navbar--button__empty-right")
+      .classList.add("none");
 
     document.querySelector(".tools").classList.remove("none");
-    document.querySelector(".navbar--button__undo").classList.remove("none");
+    // document.querySelector(".navbar--button__undo").classList.remove("none");
     document.querySelector(".navbar--button__next").classList.remove("none");
     document.querySelector(".title__question1").classList.add("none");
     document.querySelector(".nav__title").classList.remove("none");
@@ -354,7 +442,6 @@ document
     document
       .querySelector(".navbar--button__empty-right")
       .classList.add("none");
-
   });
 
 // Go to delete page
@@ -369,10 +456,11 @@ document
     document.querySelector(".title__question4").classList.add("none");
     document.querySelector(".title__question3").classList.remove("none");
     document.querySelector(".lottieAfterDrawing").classList.add("none");
-    document.querySelector(".navbar--button__empty-right").classList.remove("none");
+    document
+      .querySelector(".navbar--button__empty-right")
+      .classList.remove("none");
 
     // document.querySelector(".saveWorm").classList.add('saveWormUp');
-
 
     document
       .querySelector(".navbar--button__back-options")
@@ -396,11 +484,11 @@ document
       document.querySelector(".title__question3").classList.add("none");
       document.querySelector(".title__question4").classList.add("none");
       document.querySelector(".lottieAfterDrawing").classList.remove("none");
-      document.querySelector(".navbar--button__empty-right").classList.remove("none");
+      document
+        .querySelector(".navbar--button__empty-right")
+        .classList.remove("none");
 
       // document.querySelector(".saveWorm").classList.remove('saveWormUp');
-
-
 
       document
         .querySelector(".navbar--button__back-options")
@@ -413,27 +501,25 @@ document
   });
 
 // Go to save page
-document
-  .querySelector(".option--text__save")
-  .addEventListener("click", () => {
-    // document.querySelector(".saveWorm").classList.add('wormMoveUp');
-    document.querySelector(".option").classList.add("none");
-    document.querySelector(".save__page").classList.remove("none");
-    document.querySelector(".face_canvas").classList.add("none");
-    document.querySelector(".title__question1").classList.add("none");
-    document.querySelector(".title__question2").classList.remove("none");
-    document.querySelector(".title__question3").classList.add("none");
-    document.querySelector(".lottieAfterDrawing").classList.add("none");
-    document.querySelector(".navbar--button__empty-right").classList.remove("none");
+document.querySelector(".option--text__save").addEventListener("click", () => {
+  // document.querySelector(".saveWorm").classList.add('wormMoveUp');
+  document.querySelector(".option").classList.add("none");
+  document.querySelector(".save__page").classList.remove("none");
+  document.querySelector(".face_canvas").classList.add("none");
+  document.querySelector(".title__question1").classList.add("none");
+  document.querySelector(".title__question2").classList.remove("none");
+  document.querySelector(".title__question3").classList.add("none");
+  document.querySelector(".lottieAfterDrawing").classList.add("none");
+  document
+    .querySelector(".navbar--button__empty-right")
+    .classList.remove("none");
 
-    document
-      .querySelector(".navbar--button__back-options")
-      .classList.remove("none");
-    document
-      .querySelector(".navbar--button__back-drawing")
-      .classList.add("none");
-    document.querySelector(".nav__title").classList.add("hidden");
-  });
+  document
+    .querySelector(".navbar--button__back-options")
+    .classList.remove("none");
+  document.querySelector(".navbar--button__back-drawing").classList.add("none");
+  document.querySelector(".nav__title").classList.add("hidden");
+});
 
 // Save page to options
 document
@@ -447,10 +533,11 @@ document
       document.querySelector(".title__question2").classList.add("none");
       document.querySelector(".title__question3").classList.add("none");
       document.querySelector(".lottieAfterDrawing").classList.remove("none");
-      document.querySelector(".navbar--button__empty-right").classList.remove("none");
+      document
+        .querySelector(".navbar--button__empty-right")
+        .classList.remove("none");
 
       // document.querySelector(".saveWorm").classList.remove('saveWormUp');
-
 
       document
         .querySelector(".navbar--button__back-options")
@@ -476,7 +563,7 @@ document
 
     document.querySelector(".option").classList.add("none");
     document.querySelector(".application").classList.remove("none");
-    document.querySelector(".navbar--button__undo").classList.remove("none");
+    // document.querySelector(".navbar--button__undo").classList.remove("none");
     document.querySelector(".navbar--button__next").classList.remove("none");
     document
       .querySelector(".navbar--button__back-drawing")
@@ -504,7 +591,9 @@ document
         .classList.add("none");
       document.querySelector(".final__page").classList.remove("none");
 
-      document.querySelector(".navbar--button__empty-right").classList.add("none");
+      document
+        .querySelector(".navbar--button__empty-right")
+        .classList.add("none");
       document.querySelector(".title__question1").classList.add("none");
       document.querySelector(".title__question2").classList.add("none");
       document.querySelector(".title__question3").classList.add("none");
@@ -534,17 +623,16 @@ document
 
 // Final page to start
 document.querySelector(".final--text").addEventListener("click", () => {
-  document.querySelector(".experience").classList.add("none");
-  document.querySelector(".final__page").classList.add("none");
-  document.querySelector(".start").classList.remove("none");
-  document.querySelector(".navbar").classList.add("none");
-  document.querySelector(".nav__title").classList.add("none");
-
   // Optionally, notify peer to return to start
+  restartExperience();
+});
+
+//save image function
+document.querySelector(".save--text__save").addEventListener("click", () => {
   if (peer && peer.connected) {
     peer.send(
       JSON.stringify({
-        type: "returnToStart",
+        type: "saveImage",
       }),
     );
   }
@@ -560,6 +648,304 @@ document.querySelectorAll(".deselected, .selected").forEach(function (element) {
   });
 });
 
+const restartExperience = () => {
+  if (peer && peer.connected) {
+    peer.send(
+      JSON.stringify({
+        type: "restartExperience",
+      }),
+    );
+  }
+  window.location.reload();
+};
+// const restartExperience = () => {
+
+//   // ---------------------------
+//   // 1. Clear Inactivity Timer
+//   // ---------------------------
+//   if (inactivityTimerId !== null) {
+//     clearInterval(inactivityTimerId);
+//     inactivityTimerId = null;
+//   }
+
+//   // ---------------------------
+//   // 2. Reset Instruction Steps
+//   // ---------------------------
+//   currentInstructionStep = 0;
+//   renderInstructionStep();
+
+//   // ---------------------------
+//   // 3. Reset UI Elements to Initial State
+//   // ---------------------------
+//   // Define all elements to show and hide
+//   const elementsToShow = [".start"];
+//   const elementsToHide = [
+//     ".experience",
+//     ".instructions",
+//     ".navbar",
+//     ".canvas_container",
+//     ".option",
+//     ".delete__page",
+//     ".save__page",
+//     ".final__page",
+//     ".inactivity__wrapper",
+//     ".twoPeople__wrapper",
+//     ".noPeople__wrapper",
+//     ".lottieAfterDrawing",
+//     ".navbar--button__back-drawing",
+//     ".navbar--button__empty-right",
+//   ];
+
+//   // Show elements
+//   elementsToShow.forEach((selector) => {
+//     const el = document.querySelector(selector);
+//     if (el) el.classList.remove("none", "visible", "hidden");
+//   });
+
+//   // Hide elements
+//   elementsToHide.forEach((selector) => {
+//     const el = document.querySelector(selector);
+//     if (el) el.classList.add("none");
+//   });
+
+//   // ---------------------------
+//   // 4. Reset Specific UI Components
+//   // ---------------------------
+
+//   // Reset Inactivity Popup Elements
+//   const navbar = document.querySelector(".navbar");
+//   if (navbar) navbar.classList.remove("opacityBar");
+
+//   const inactivityWrapper = document.querySelector(".inactivity__wrapper");
+//   if (inactivityWrapper) inactivityWrapper.classList.remove("visible");
+
+//   const lowerOpacity = document.querySelector(".lower__opacity");
+//   if (lowerOpacity) {
+//     lowerOpacity.style.pointerEvents = "none";
+//     lowerOpacity.style.backgroundColor = "rgba(0, 0, 0, 0)";
+//   }
+
+//   const inactiveWorm = document.querySelector(".inactive__worm");
+//   if (inactiveWorm) inactiveWorm.classList.remove("wormIn");
+
+//   const inactiveMark = document.querySelector(".inactive__mark");
+//   if (inactiveMark) inactiveMark.classList.remove("markIn");
+
+//   // Reset Two People Camera Elements
+//   const twoPeopleWrapper = document.querySelector(".twoPeople__wrapper");
+//   if (twoPeopleWrapper) twoPeopleWrapper.classList.remove("visible");
+
+//   const lowerOpacity2 = document.querySelector(".lower__opacity2");
+//   if (lowerOpacity2) lowerOpacity2.style.backgroundColor = "";
+
+//   const wormCameraRight = document.querySelector(".wormCameraRight");
+//   if (wormCameraRight) wormCameraRight.classList.remove("wormRightMove");
+
+//   // Reset No People Camera Elements
+//   const noPeopleWrapper = document.querySelector(".noPeople__wrapper");
+//   if (noPeopleWrapper) noPeopleWrapper.classList.remove("visible");
+
+//   const lowerOpacity3 = document.querySelector(".lower__opacity3");
+//   if (lowerOpacity3) {
+//     lowerOpacity3.style.backgroundColor = "rgba(0, 0, 0, 0)";
+//   }
+
+//   const wormSlideLeft = document.querySelector(".wormSlideLeft");
+//   if (wormSlideLeft) wormSlideLeft.classList.remove("wormslideLeftMove");
+
+//   const wormSlideRight = document.querySelector(".wormSlideRight");
+//   if (wormSlideRight) wormSlideRight.classList.remove("wormslideRightMove");
+
+//   // Reset Suggestion Elements
+//   const suggestion = document.querySelector(".suggestion");
+//   if (suggestion) suggestion.classList.remove("vanish");
+
+//   // Reset Titles
+//   const titleQuestion1 = document.querySelector(".title__question1");
+//   if (titleQuestion1) titleQuestion1.classList.add("none");
+
+//   const titleQuestion2 = document.querySelector(".title__question2");
+//   if (titleQuestion2) titleQuestion2.classList.add("none");
+
+//   const titleQuestion3 = document.querySelector(".title__question3");
+//   if (titleQuestion3) titleQuestion3.classList.add("none");
+
+//   const titleQuestion4 = document.querySelector(".title__question4");
+//   if (titleQuestion4) titleQuestion4.classList.add("none");
+
+//   const navTitle = document.querySelector(".nav__title");
+//   if (navTitle) navTitle.classList.remove("hidden");
+
+//   // Reset Navbar Buttons
+//   const navbarButtonUndo = document.querySelector(".navbar--button__undo");
+//   if (navbarButtonUndo) navbarButtonUndo.classList.add("none");
+
+//   const navbarButtonNext = document.querySelector(".navbar--button__next");
+//   if (navbarButtonNext) navbarButtonNext.classList.add("none");
+
+//   const navbarButtonBackOptions = document.querySelector(
+//     ".navbar--button__back-options",
+//   );
+//   if (navbarButtonBackOptions) navbarButtonBackOptions.classList.add("none");
+
+//   const navbarButtonBackDrawing = document.querySelector(
+//     ".navbar--button__back-drawing",
+//   );
+//   if (navbarButtonBackDrawing) navbarButtonBackDrawing.classList.add("none");
+
+//   const navbarButtonEmptyRight = document.querySelector(
+//     ".navbar--button__empty-right",
+//   );
+//   if (navbarButtonEmptyRight) navbarButtonEmptyRight.classList.add("none");
+
+//   // Reset Final Page Elements
+//   const finalPage = document.querySelector(".final__page");
+//   if (finalPage) finalPage.classList.add("none");
+
+//   const lottieExplosionFinal = document.querySelector(".lottieExplosionFinal");
+//   if (lottieExplosionFinal) {
+//     lottieExplosionFinal.classList.remove("none");
+//     // Optionally destroy or reset animations
+//     // lottie.destroy(); // This resets all Lottie animations
+//   }
+
+//   // Reset Lottie After Drawing
+//   const lottieAfterDrawing = document.querySelector(".lottieAfterDrawing");
+//   if (lottieAfterDrawing) lottieAfterDrawing.classList.add("none");
+
+//   // Reset Application Page
+//   const application = document.querySelector(".application");
+//   if (application) application.classList.add("none");
+
+//   // Reset Navbar Visibility
+//   const navbarElement = document.querySelector(".navbar");
+//   if (navbarElement) navbarElement.classList.add("none");
+
+//   // Reset Canvas Container
+//   const canvasContainer = document.querySelector(".canvas_container");
+//   if (canvasContainer) canvasContainer.classList.add("none");
+
+//   // Reset Option Pages
+//   const option = document.querySelector(".option");
+//   if (option) option.classList.add("none");
+
+//   const deletePage = document.querySelector(".delete__page");
+//   if (deletePage) deletePage.classList.add("none");
+
+//   const savePage = document.querySelector(".save__page");
+//   if (savePage) savePage.classList.add("none");
+
+//   const finalText = document.querySelector(".final--text");
+//   if (finalText) finalText.classList.remove("none");
+
+//   // Reset any other specific elements as needed
+//   // Example: Reset all elements with "wormIn", "markIn", etc.
+//   document.querySelectorAll(".wormIn, .markIn, .opacityBar").forEach((el) => {
+//     el.classList.remove("wormIn", "markIn", "opacityBar");
+//   });
+
+//   // ---------------------------
+//   // 5. Reset Tool Selection
+//   // ---------------------------
+//   selectedTool = "pencilBig";
+//   toolButtons.forEach((btn) => btn.classList.remove("selected"));
+//   const defaultToolButton = document.querySelector(
+//     `[data-tool="${selectedTool}"]`,
+//   );
+//   if (defaultToolButton) defaultToolButton.classList.add("selected");
+
+//   const toolballPos = document.querySelector(".toolball");
+//   if (toolballPos) {
+//     toolballPos.className = "toolball " + selectedTool;
+//   }
+
+//   // ---------------------------
+//   // 6. Reset Animations
+//   // ---------------------------
+//   // Destroy all existing Lottie animations
+//   lottie.destroy();
+
+//   // Reload the initial idle animation
+//   lottie.loadAnimation({
+//     container: document.querySelector(".lottie"),
+//     renderer: "svg",
+//     loop: true,
+//     autoplay: true,
+//     path: "./assets/idle3.json",
+//   });
+
+//   // Reset animation flags
+//   animationLoadedAfterDrawing = false;
+//   animationLoadedThumbsUpWorm = false;
+//   animationLoadedExplosionFinal = false;
+
+//   // ---------------------------
+//   // 7. Clear Canvas
+//   // ---------------------------
+//   if (faceCanvasContext) {
+//     faceCanvasContext.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+//   }
+
+//   // ---------------------------
+//   // 8. Reset State Variables
+//   // ---------------------------
+//   isFaceInFrame = false;
+//   isDrawingStarted = false;
+//   isTouching = false;
+//   inactivityTime = 0;
+//   experienceActive = false;
+
+//   // ---------------------------
+//   // 9. Reset Inactivity Checker
+//   // ---------------------------
+//   // Do not restart the inactivity checker here; it should start when the experience starts
+//   // Ensure that no timers are running
+
+//   // ---------------------------
+//   // 10. Reset Remote Video
+//   // ---------------------------
+//   if (remoteVideo) {
+//     remoteVideo.pause();
+//     remoteVideo.srcObject = null;
+//   }
+
+//   // ---------------------------
+//   // 11. Reset WebRTC and Socket.io Connections
+//   // ---------------------------
+//   if (peer) {
+//     peer.destroy();
+//     peer = null;
+//   }
+
+//   if (socket) {
+//     socket.disconnect();
+//     socket = null;
+//   }
+
+//   // Reinitialize Socket.io connection
+//   initSocket();
+
+//   // ---------------------------
+//   // 12. Log Restart Completion
+//   // ---------------------------
+//   console.log("Experience has been restarted to the initial state.");
+
+//   // Notify peer about the restart if connected
+//   if (peer && peer.connected) {
+//     peer.send(
+//       JSON.stringify({
+//         type: "restartExperience",
+//       }),
+//     );
+//   }
+
+//   // ---------------------------
+//   // 13. Restore Event Listeners (If Needed)
+//   // ---------------------------
+//   // If any event listeners were removed or need to be reattached, do so here.
+//   // For example, reattach any specific event listeners that were not persistent.
+// };
+
 // Lottie animation setup
 lottie.loadAnimation({
   container: document.querySelector(".lottie"),
@@ -568,9 +954,6 @@ lottie.loadAnimation({
   autoplay: true,
   path: "./assets/idle3.json",
 });
-
-
-let isTouching = false;
 
 function getNormalizedCoordinates(touch) {
   const rect = faceCanvas.getBoundingClientRect();
@@ -587,35 +970,6 @@ faceCanvas.addEventListener("touchstart", (e) => {
   const { x, y } = getNormalizedCoordinates(touch);
 
   sendTouchData({ type: "touchstart", x, y });
-
-  const suggestion = document.querySelector(".suggestion");
-  let suggestionTime = 0;
-  const timerSuggestion = setInterval(() => {
-    suggestionTime++;
-    if (suggestionTime === 3) {
-      suggestion.classList.add("vanish");
-      clearInterval(timerSuggestion);
-    }
-    // console.log(suggestionTime);
-  }, 1000);
-  let timeThumbsUp = 0;
-  const timerThumbsUp = setInterval(() => {
-    timeThumbsUp++;
-    if (timeThumbsUp === 12) {
-      if(!animationLoadedThumbsUpWorm){
-      lottie.loadAnimation({
-        container: document.querySelector(".lottieThumbWorm"),
-        renderer: "svg",
-        loop: false,
-        autoplay: true,
-        path: "./assets/ThumbsUpWorm.json",
-      });
-      animationLoadedThumbsUpWorm = true;
-    }
-      clearInterval(timerThumbsUp);
-    }
-  }, 1000);
-
 });
 
 faceCanvas.addEventListener("touchmove", (e) => {
@@ -634,13 +988,24 @@ faceCanvas.addEventListener("touchend", (e) => {
 
   // Send touch end event
   sendTouchData({ type: "touchend" });
+
+  if (currentInstructionStep === 2) {
+    nextInstructionStep();
+    setTimeout(() => {
+      if (currentInstructionStep === 2) {
+        nextInstructionStep();
+      }
+    }, 2000);
+  }
 });
 
 // Function to send touch data via WebRTC
 function sendTouchData(data) {
-  if (peer && peer.connected) {
-    peer.send(JSON.stringify(data));
-    console.log("Sending touch data:", data);
+  if (isDrawingStarted) {
+    if (peer && peer.connected) {
+      peer.send(JSON.stringify(data));
+      console.log("Sending touch data:", data);
+    }
   }
 }
 
@@ -814,6 +1179,7 @@ function createPeer(initiator, peerId) {
     initiator,
     // stream: myStream,
     config: servers,
+    objectMode: true,
   });
 
   peer.data = {
@@ -846,10 +1212,8 @@ function createPeer(initiator, peerId) {
   });
 
   peer.on("data", (data) => {
-    console.log("Data received: ", data);
     try {
-      const parsedData = JSON.parse(data);
-      handlePeerData(parsedData);
+      handlePeerData(data);
     } catch (e) {
       console.error("Error parsing received data:", e);
     }
@@ -875,6 +1239,45 @@ function createPeer(initiator, peerId) {
     console.error("Peer connection error:", error);
   });
 }
+const handlePeerData = (data) => {
+  try {
+    const parsedData = JSON.parse(data);
+    console.log("Received data:", parsedData);
+    switch (parsedData.type) {
+      case "faceFound":
+        isFaceInFrame = true;
+        noPeopleCameraSolved();
+        if (currentInstructionStep === 0) {
+          setTimeout(() => {
+            if (isFaceInFrame) {
+              nextInstructionStep();
+            }
+          }, 4000);
+        }
+        break;
+      case "faceLost":
+        isFaceInFrame = false;
+
+        if (currentInstructionStep === 4) {
+          noPeopleCamera();
+        }
+        break;
+      case "touchstart":
+        handleTouchStart(parsedData.x, parsedData.y);
+        break;
+      case "touchmove":
+        handleTouchMove(parsedData.x, parsedData.y);
+        break;
+      case "touchend":
+        handleTouchEnd();
+        break;
+      default:
+        console.warn("Unknown data type received:", parsedData.type);
+    }
+  } catch (e) {
+    console.error("Error parsing received data:", e);
+  }
+};
 
 // ---------------------------
 // Initialization Functions

@@ -28,6 +28,7 @@ const canvas4Ctx = canvas4.getContext("2d");
 const canvasStream = document.querySelector(".canvas_stream");
 const canvasStreamCtx = canvasStream.getContext("2d");
 const streamBackgroundColor = "#f7ebdd";
+let previousFaceStatus = false;
 
 // webcam variables
 let videoWidth = 0;
@@ -520,6 +521,11 @@ const predictWebcam = async () => {
   if (faceLandmarker) {
     const results = await faceLandmarker.detectForVideo(video, startTimeMs);
     if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
+      if (peer && peer.connected && !previousFaceStatus) {
+        peer.send(JSON.stringify({ type: "faceFound" }));
+        previousFaceStatus = true;
+        console.log("faceFound sent");
+      }
       // Convert landmarks to cropped canvas coordinates
       currentFaceLandmarks = results.faceLandmarks[0].map((lm) => {
         // lm.x, lm.y are normalized to full video (0...1)
@@ -540,6 +546,11 @@ const predictWebcam = async () => {
       });
     } else {
       currentFaceLandmarks = null;
+      if (peer && peer.connected && previousFaceStatus) {
+        peer.send(JSON.stringify({ type: "faceLost" }));
+        previousFaceStatus = false;
+        console.log("faceLost sent");
+      }
     }
   }
 
@@ -698,6 +709,34 @@ const enableCam = async () => {
   }
 };
 
+const saveImage = () => {
+  const canvas = document.querySelector(".canvas1");
+  const dataURL = canvas.toDataURL("image/png");
+
+  // Create a timestamp in the format yyyy_mm_dd_hh_mm_ss
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+
+  const folderName = `${year}_${month}_${day}`;
+  const fileName = `${year}_${month}_${day}_${hours}_${minutes}_${seconds}.png`;
+
+  // Optionally, include the folder name in the filename for easier identification
+  // Note: This does not create an actual folder but helps in organizing files
+  // Example: "2024_04_28_13_45_30.png"
+
+  const link = document.createElement("a");
+  link.href = dataURL;
+  link.download = fileName; // Set the customized filename
+  document.body.appendChild(link); // Required for Firefox
+  link.click();
+  document.body.removeChild(link);
+};
+
 // handling the data received from the tablet peer
 const handlePeerData = (data) => {
   try {
@@ -717,6 +756,12 @@ const handlePeerData = (data) => {
           console.warn("Received unknown tool:", parsedData.tool);
         }
         break;
+      case "saveImage":
+        saveImage();
+        break;
+      case "undoLastDraw":
+        faceDrawings.pop();
+        break;
       case "touchstart":
         handleTouchStart(parsedData.x, parsedData.y);
         break;
@@ -726,6 +771,10 @@ const handlePeerData = (data) => {
       case "touchend":
         handleTouchEnd();
         break;
+      case "restartExperience":
+        faceDrawings = [];
+        break;
+
       default:
         console.warn("Unknown data type received:", parsedData.type);
     }
