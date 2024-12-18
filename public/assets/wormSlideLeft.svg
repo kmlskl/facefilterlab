@@ -1,0 +1,15 @@
+<svg width="870" height="190" viewBox="0 0 870 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M769 95L95 95.0001" stroke="#ACE90A" stroke-width="189.423" stroke-linecap="round"/>
+<path d="M787.433 123.385C783.066 119.036 777.34 108.925 777.34 97.1456C777.34 85.3664 783.066 75.2553 787.433 70.9062" stroke="#322F38" stroke-width="15.9876" stroke-linecap="round"/>
+<ellipse cx="30.6441" cy="30.645" rx="30.6441" ry="30.645" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 869.5 161.07)" fill="white"/>
+<circle cx="14.6561" cy="14.6561" r="14.6561" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 854.312 144.812)" fill="#322F38"/>
+<circle cx="839.618" cy="130.13" r="4.62004" transform="rotate(90 839.618 130.13)" fill="#322F38" stroke="#322F38" stroke-width="4.18004"/>
+<ellipse cx="30.6441" cy="30.645" rx="30.6441" ry="30.645" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 869.289 91.2891)" fill="white"/>
+<mask id="mask0_172_558" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="807" y="30" width="63" height="62">
+<ellipse cx="30.6441" cy="30.645" rx="30.6441" ry="30.645" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 869.289 91.2891)" fill="white"/>
+</mask>
+<g mask="url(#mask0_172_558)">
+<circle cx="839.444" cy="60.6561" r="14.6561" transform="rotate(90 839.444 60.6561)" fill="#322F38"/>
+<circle cx="6.71006" cy="6.71006" r="4.62004" transform="matrix(4.37114e-08 -1 -1 -4.37114e-08 846.115 67.3926)" fill="#322F38" stroke="#322F38" stroke-width="4.18004"/>
+</g>
+</svg>

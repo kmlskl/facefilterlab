@@ -11,6 +11,8 @@ let remoteStream; // Stream received from the peer
 const remoteVideo = document.querySelector(".remote_video");
 const faceCanvas = document.querySelector(".face_canvas");
 const faceCanvasContext = faceCanvas.getContext("2d");
+let animationLoadedAfterDrawing = false;
+let animationLoadedThumbsUpWorm = false;
 
 const servers = {
   iceServers: [
@@ -55,8 +57,8 @@ const instructionSteps = [
 ];
 
 let inactivityTime = 0;
-document.onclick = () => { inactivityTime = 0; };
-
+// document.onclick = () => { inactivityTime = 0; };
+document.addEventListener("touchstart", () => { inactivityTime = 0; })
 let selectedTool = "pencilBig";
 
 
@@ -193,7 +195,7 @@ document
 document
   .querySelector(".navbar--button__undo")
   .addEventListener("click", (event) => {
-    prevInstructionStep();
+    // prevInstructionStep();
   });
 
 const startExperience = () => {
@@ -212,6 +214,20 @@ const startExperience = () => {
 
   remoteVideo.play();
 };
+// more than 2 people in camera function
+const twoPeopleCamera = () => {
+  document.querySelector(".twoPeople__wrapper").classList.add("visible");
+  document.querySelector(".lower__opacity2").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+  document.querySelector(".wormCameraRight").classList.add("wormRightMove");
+}
+// no one in camera function
+const noPeopleCamera = () => {
+  document.querySelector(".noPeople__wrapper").classList.add("visible");
+  document.querySelector(".lower__opacity3").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+  document.querySelector(".wormSlideLeft").classList.add("wormslideLeftMove");
+  document.querySelector(".wormSlideRight").classList.add("wormslideRightMove");
+}
+
 
 const backToStart = () => {
   document.querySelector(".start").classList.remove("none");
@@ -231,7 +247,7 @@ const backToStart = () => {
 const inactivityChecker = () => {
   const inactivityTimer = setInterval(() => {
     inactivityTime++;
-    if (inactivityTime === 15) {
+    if (inactivityTime === 30) {
       document.querySelector(".inactivity__wrapper").classList.add("visible");
       document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
       document.querySelector(".lower__opacity").style.pointerEvents = "all";
@@ -249,6 +265,7 @@ document.querySelector(".inactivity__button--ja").addEventListener("click", () =
   document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0)";
   document.querySelector(".inactive__worm").classList.remove("wormIn");
   document.querySelector(".inactive__mark").classList.remove("markIn");
+  inactivityChecker();
 })
 document.querySelector(".inactivity__button--nee").addEventListener("click", () => {
   document.querySelector(".inactivity__wrapper").classList.remove("visible");
@@ -273,10 +290,25 @@ document
   .querySelector(".navbar--button__next")
   .addEventListener("click", () => {
     // document.querySelector(".application").classList.add("none");
+    document.querySelector(".navbar--button__empty-right").classList.remove("none");
     document.querySelector(".option").classList.remove("none");
     document.querySelector(".tools").classList.add("none");
     document.querySelector(".navbar--button__undo").classList.add("none");
     document.querySelector(".navbar--button__next").classList.add("none");
+    document.querySelector(".title__question1").classList.remove("none");
+    document.querySelector(".nav__title").classList.add("none");
+    document.querySelector(".suggestion").classList.add("none");
+    document.querySelector(".lottieAfterDrawing").classList.remove("none");
+    if(!animationLoadedAfterDrawing){
+    lottie.loadAnimation({
+      container: document.querySelector(".lottieAfterDrawing"),
+      renderer: "svg",
+      loop: false,
+      autoplay: true,
+      path: "./assets/WormsDrawingComplete.json",
+    });
+    animationLoadedAfterDrawing = true;
+    }
     document
       .querySelector(".navbar--button__back-drawing")
       .classList.remove("none");
@@ -290,24 +322,53 @@ document
   .querySelector(".navbar--button__back-drawing")
   .addEventListener("click", () => {
     // document.querySelector(".application").classList.add("none");
+    // document.querySelector(".option").classList.add("none");
+    // document.querySelector(".tools").classList.remove("none");
+    // document.querySelector(".navbar--button__undo").classList.remove("none");
+    // document.querySelector(".navbar--button__next").classList.remove("none");
+    // document
+    //   .querySelector(".navbar--button__back-drawing")
+    //   .classList.add("none");
+    // document
+    //   .querySelector(".navbar--button__empty-right")
+    //   .classList.add("none");
+
     document.querySelector(".option").classList.add("none");
+    document.querySelector(".navbar--button__empty-right").classList.add("none");
+
     document.querySelector(".tools").classList.remove("none");
     document.querySelector(".navbar--button__undo").classList.remove("none");
     document.querySelector(".navbar--button__next").classList.remove("none");
+    document.querySelector(".title__question1").classList.add("none");
+    document.querySelector(".nav__title").classList.remove("none");
+    document.querySelector(".suggestion").classList.remove("none");
+    document.querySelector(".lottieAfterDrawing").classList.add("none");
     document
       .querySelector(".navbar--button__back-drawing")
       .classList.add("none");
     document
       .querySelector(".navbar--button__empty-right")
       .classList.add("none");
+
   });
 
 // Go to delete page
 document
   .querySelector(".option--text__delete")
-  .addEventListener("click", function () {
+  .addEventListener("click", () => {
     document.querySelector(".option").classList.add("none");
     document.querySelector(".delete__page").classList.remove("none");
+    document.querySelector(".face_canvas").classList.add("none");
+    document.querySelector(".title__question1").classList.add("none");
+    document.querySelector(".title__question2").classList.add("none");
+    document.querySelector(".title__question4").classList.add("none");
+    document.querySelector(".title__question3").classList.remove("none");
+    document.querySelector(".lottieAfterDrawing").classList.add("none");
+    document.querySelector(".navbar--button__empty-right").classList.remove("none");
+
+    // document.querySelector(".saveWorm").classList.add('saveWormUp');
+
+
     document
       .querySelector(".navbar--button__back-options")
       .classList.remove("none");
@@ -321,9 +382,21 @@ document
 document
   .querySelectorAll(".navbar--button__back-options, .delete--text__back")
   .forEach(function (element) {
-    element.addEventListener("click", function () {
+    element.addEventListener("click", () => {
       document.querySelector(".option").classList.remove("none");
       document.querySelector(".delete__page").classList.add("none");
+      document.querySelector(".face_canvas").classList.remove("none");
+      document.querySelector(".title__question1").classList.remove("none");
+      document.querySelector(".title__question2").classList.add("none");
+      document.querySelector(".title__question3").classList.add("none");
+      document.querySelector(".title__question4").classList.add("none");
+      document.querySelector(".lottieAfterDrawing").classList.remove("none");
+      document.querySelector(".navbar--button__empty-right").classList.add("none");
+
+      // document.querySelector(".saveWorm").classList.remove('saveWormUp');
+
+
+
       document
         .querySelector(".navbar--button__back-options")
         .classList.add("none");
@@ -337,9 +410,17 @@ document
 // Go to save page
 document
   .querySelector(".option--text__save")
-  .addEventListener("click", function () {
+  .addEventListener("click", () => {
+    // document.querySelector(".saveWorm").classList.add('wormMoveUp');
     document.querySelector(".option").classList.add("none");
     document.querySelector(".save__page").classList.remove("none");
+    document.querySelector(".face_canvas").classList.add("none");
+    document.querySelector(".title__question1").classList.add("none");
+    document.querySelector(".title__question2").classList.remove("none");
+    document.querySelector(".title__question3").classList.add("none");
+    document.querySelector(".lottieAfterDrawing").classList.add("none");
+    document.querySelector(".navbar--button__empty-right").classList.remove("none");
+
     document
       .querySelector(".navbar--button__back-options")
       .classList.remove("none");
@@ -356,6 +437,16 @@ document
     element.addEventListener("click", function () {
       document.querySelector(".option").classList.remove("none");
       document.querySelector(".save__page").classList.add("none");
+      document.querySelector(".face_canvas").classList.remove("none");
+      document.querySelector(".title__question1").classList.remove("none");
+      document.querySelector(".title__question2").classList.add("none");
+      document.querySelector(".title__question3").classList.add("none");
+      document.querySelector(".lottieAfterDrawing").classList.remove("none");
+      document.querySelector(".navbar--button__empty-right").classList.add("none");
+
+      // document.querySelector(".saveWorm").classList.remove('saveWormUp');
+
+
       document
         .querySelector(".navbar--button__back-options")
         .classList.add("none");
@@ -407,6 +498,12 @@ document
         .querySelector(".navbar--button__back-options")
         .classList.add("none");
       document.querySelector(".final__page").classList.remove("none");
+
+      document.querySelector(".navbar--button__empty-right").classList.add("none");
+      document.querySelector(".title__question1").classList.add("none");
+      document.querySelector(".title__question2").classList.add("none");
+      document.querySelector(".title__question3").classList.add("none");
+      document.querySelector(".title__question4").classList.remove("none");
 
       // Optionally, notify peer to go to final page
       if (peer && peer.connected) {
@@ -488,6 +585,7 @@ faceCanvas.addEventListener("touchstart", (e) => {
   const timerThumbsUp = setInterval(() => {
     timeThumbsUp++;
     if (timeThumbsUp === 10) {
+      if(!animationLoadedThumbsUpWorm){
       lottie.loadAnimation({
         container: document.querySelector(".lottieThumbWorm"),
         renderer: "svg",
@@ -495,6 +593,8 @@ faceCanvas.addEventListener("touchstart", (e) => {
         autoplay: true,
         path: "./assets/ThumbsUpWorm.json",
       });
+      animationLoadedThumbsUpWorm = true;
+    }
       clearInterval(timerThumbsUp);
     }
   }, 1000);

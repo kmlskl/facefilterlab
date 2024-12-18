@@ -32,6 +32,26 @@ import lottie from "lottie-web";
     <img class="inactive__mark" src="./assets/questionmark.svg" alt="?" >
     <img class="inactive__worm" src="./assets/inactiveWorm.svg" alt="worm" >
     </div>
+
+    <div class="lower__opacity2">
+      <div class="twoPeople__wrapper">
+      <p class="inactivity__question">Niet meer dan <span class="purple--text">1 persoon</span><br/>voor de camera!</p>
+      <div class="worm__wrapper">
+        <img class="wormCamera wormCameraLeft" src="./assets/wormLeft.svg" alt="worm">
+        <img class="wormCamera wormCameraRight" src="./assets/wormRight.svg" alt="worm">
+      </div>
+    </div>
+  </div>
+    <div class="lower__opacity3">
+      <div class="noPeople__wrapper">
+      <p class="inactivity__question noPeople__question">Waar ben je naartoe?<br/><span class="red--text">kom terug!</span><br/></p>
+      <div class="wormSlide__wrapper">
+        <img class="wormSlide wormSlideLeft" src="./assets/wormSlideLeft.svg" alt="worm">
+        <img class="wormSlide wormSlideRight" src="./assets/wormSlideRight.svg" alt="worm">
+      </div>
+    </div>
+  </div>
+
     <nav class="navbar none">
       <div class="navbar--button__empty-left none">
         <img src="/assets/button_empty.png" alt="empty button" />
@@ -56,7 +76,12 @@ import lottie from "lottie-web";
         The<br />
         <span class="fat--title">Face Filter Lab</span>
       </h2>
-      
+
+      <h2 class="title__question title__question1 none">Blij met je<br><span class="purple--text">resultaat?</span></h2>
+      <h2 class="title__question title__question2 none">Wil je je creatie <span class="pink--text">opslaan?</span></h2>
+      <h2 class="title__question title__question3 none">Wil je je creatie <span class="pink--text">niet opslaan?</span></h2>
+      <h2 class="title__question title__question4 none"><span class="cursive--text red--text">Bedankt</span> voor het spelen!</h2>
+
       <button class="navbar--button__next none">
         <img src="/assets/button_next.svg" alt="icon for next button" />
       </button>
@@ -67,7 +92,7 @@ import lottie from "lottie-web";
     </nav>
     
     
-
+      <div id="done-animation" class="lottieAfterDrawing"></div>
     <p class="suggestion none">je kan van hem/haar bijvoorbeeld je <span class="purple--text noTypo">lievelingsdier</span> maken!</p>
 
     <div class="page">
@@ -165,42 +190,39 @@ import lottie from "lottie-web";
           </div>
         </div>
 
-        <div class="page save__page none">
-          <h2 class="cursive--text pink--text">Zeker?</h2>
-          <p>
-            Deze foto zal je kunnen vinden via de google-drive link op het einde
-            van het festival.
+        <div class="page__save save__page none">
+          <p class="description__confirmation">
+            Haal je ouder(s) erbij! vraag ze of je deze foto mag opslaan! Deze foto kan je terugvinden via een Google-Drive link op het einde van het festival.
           </p>
-          <div class="option--text__container">
+          <div class="option--text__container option--text__container--save">
             <button class="save--text__back button_red">Terug</button>
             <button class="save--text__save button_green">Opslaan</button>
           </div>
+          <img class="saveWorm saveWormAnimate" src="./assets/saveWorm.svg" alt="worm">
         </div>
-        <div class="page delete__page none">
-          <h2>
-            Wil je je creatie <span class="cursive--text pink--text"
-              >verwijderen</span
-            >?
-          </h2>
-          <p>
-            Eens je creatie is verwijderd kunnen we hem niet meer terughalen...
-          </p>
-          <div class="option--text__container">
-            <button class="delete--text__back button_green">Terug</button>
-            <button class="delete--text__delete button_red">Verwijderen</button>
-          </div>
+        <div class="page__save delete__page none">
+            <p class="description__confirmation">
+              Hierna kan je nog een nieuwe creatie maken, maar deze is dan voor altijd weg!
+            </p>
+            <div class="option--text__container option--text__container--save">
+              <button class="delete--text__back button_green">Terug</button>
+              <button class="delete--text__delete button_red">Niet opslaan</button>
+            </div>
+            <img class="saveWorm deleteWormAnimate" src="./assets/deleteWorm.svg" alt="worm">
         </div>
 
         <div class="page final__page none">
-          <h2>
-            <span class="cursive--text red--text">Bedankt</span> voor het spelen!
-          </h2>
-          <p>
+          
+          <p class="description__confirmation">
             We hopen dat het is gelukt!<br /> Je kan gerust nog een nieuwe filter
             maken.
           </p>
           <div class="final--container">
-            <button class="final--text button_green">Opnieuw spelen</button>
+            <button class="final--text button_green">Nog eens!</button>
+          </div>
+          <div class="hand__wrapper">
+            <img class="hand handLeft" src="./assets/handLeft.svg" alt="hand">
+            <img class="hand handRight" src="./assets/handRight.svg" alt="hand">
           </div>
         </div>
       </div>
