@@ -396,7 +396,7 @@ document
       document.querySelector(".title__question3").classList.add("none");
       document.querySelector(".title__question4").classList.add("none");
       document.querySelector(".lottieAfterDrawing").classList.remove("none");
-      document.querySelector(".navbar--button__empty-right").classList.add("none");
+      document.querySelector(".navbar--button__empty-right").classList.remove("none");
 
       // document.querySelector(".saveWorm").classList.remove('saveWormUp');
 
@@ -447,7 +447,7 @@ document
       document.querySelector(".title__question2").classList.add("none");
       document.querySelector(".title__question3").classList.add("none");
       document.querySelector(".lottieAfterDrawing").classList.remove("none");
-      document.querySelector(".navbar--button__empty-right").classList.add("none");
+      document.querySelector(".navbar--button__empty-right").classList.remove("none");
 
       // document.querySelector(".saveWorm").classList.remove('saveWormUp');
 

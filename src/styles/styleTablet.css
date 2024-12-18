@@ -70,7 +70,10 @@
     background-color: transparent;
     margin-top: 2rem;
   }
-
+  .navbar--button__back-drawing {
+    margin-top: -1rem;
+    margin-left: -1.5rem;
+  }
   .navbar>button>img,
   .navbar>div>img {
     width: 5.375rem;
@@ -270,8 +273,8 @@
   .lottieFingerPoint {
     position: absolute;
     width: 25rem;
-    top: 40%;
-    left: 0;
+    top: 20%;
+    left: -10%;
   }
 
   .lottiePinkSnake {
