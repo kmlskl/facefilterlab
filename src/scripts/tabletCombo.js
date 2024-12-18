@@ -250,7 +250,7 @@ const backToStart = () => {
 const inactivityChecker = () => {
   const inactivityTimer = setInterval(() => {
     inactivityTime++;
-    if (inactivityTime === 4) {
+    if (inactivityTime === 30) {
       document.querySelector(".navbar").classList.add("opacityBar");
       document.querySelector(".inactivity__wrapper").classList.add("visible");
       document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
