@@ -13,6 +13,7 @@ const faceCanvas = document.querySelector(".face_canvas");
 const faceCanvasContext = faceCanvas.getContext("2d");
 let animationLoadedAfterDrawing = false;
 let animationLoadedThumbsUpWorm = false;
+let animationLoadedExplosionFinal = false;
 
 const servers = {
   iceServers: [
@@ -139,6 +140,8 @@ const nextInstructionStep = () => {
       });
     }
     if (currentInstructionStep === 3) {
+      document.querySelector(".lottieFingerPoint").classList.add("none");
+      document.querySelector(".lottiePinkSnake").classList.add("none");
       for (let i = 2; i < 6; i++) {
       lottie.loadAnimation({
         container: document.querySelector(`.lottieSuper${i}`),
@@ -247,7 +250,8 @@ const backToStart = () => {
 const inactivityChecker = () => {
   const inactivityTimer = setInterval(() => {
     inactivityTime++;
-    if (inactivityTime === 30) {
+    if (inactivityTime === 4) {
+      document.querySelector(".navbar").classList.add("opacityBar");
       document.querySelector(".inactivity__wrapper").classList.add("visible");
       document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0.3)";
       document.querySelector(".lower__opacity").style.pointerEvents = "all";
@@ -265,6 +269,7 @@ document.querySelector(".inactivity__button--ja").addEventListener("click", () =
   document.querySelector(".lower__opacity").style.backgroundColor = "rgba(0, 0, 0, 0)";
   document.querySelector(".inactive__worm").classList.remove("wormIn");
   document.querySelector(".inactive__mark").classList.remove("markIn");
+  document.querySelector(".navbar").classList.remove("opacityBar");
   inactivityChecker();
 })
 document.querySelector(".inactivity__button--nee").addEventListener("click", () => {
@@ -505,6 +510,17 @@ document
       document.querySelector(".title__question3").classList.add("none");
       document.querySelector(".title__question4").classList.remove("none");
 
+      if (!animationLoadedExplosionFinal) {
+        lottie.loadAnimation({
+          container: document.querySelector(".lottieExplosionFinal"),
+          renderer: "svg",
+          loop: false,
+          autoplay: true,
+          path: "./assets/BigExplosion.json",
+        });
+        animationLoadedExplosionFinal = true;
+      }
+
       // Optionally, notify peer to go to final page
       if (peer && peer.connected) {
         peer.send(
@@ -517,7 +533,8 @@ document
   });
 
 // Final page to start
-document.querySelector(".final--text").addEventListener("click", function () {
+document.querySelector(".final--text").addEventListener("click", () => {
+  document.querySelector(".experience").classList.add("none");
   document.querySelector(".final__page").classList.add("none");
   document.querySelector(".start").classList.remove("none");
   document.querySelector(".navbar").classList.add("none");
@@ -584,7 +601,7 @@ faceCanvas.addEventListener("touchstart", (e) => {
   let timeThumbsUp = 0;
   const timerThumbsUp = setInterval(() => {
     timeThumbsUp++;
-    if (timeThumbsUp === 10) {
+    if (timeThumbsUp === 12) {
       if(!animationLoadedThumbsUpWorm){
       lottie.loadAnimation({
         container: document.querySelector(".lottieThumbWorm"),
